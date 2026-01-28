@@ -1,5 +1,5 @@
 // pages/home/home.ts
-import { getDailyFortune, getLunarDate, getWeightedAnswer, zenQuotes } from '../../utils/answers'
+import { getDailyFortune, getLunarDate, getWeightedAnswer, zenQuotes } from '../../utils/answers-new'
 
 Page({
   data: {
@@ -33,7 +33,9 @@ Page({
     isTyping: false,
     // 卡片相关
     showPosterModal: false,
-    posterImagePath: ''
+    posterImagePath: '',
+    currentBgImageUrl: '', // 当前使用的背景图URL
+    isRefreshingBg: false // 是否正在刷新背景
   },
 
   // 定时器
@@ -520,24 +522,128 @@ ${enhancement}
     this.drawPoster()
   },
 
+  // 获取Bing壁纸 (支持每日壁纸和随机历史壁纸)
+  async getBingDailyImage(useRandom: boolean = false): Promise<string> {
+    try {
+      if (useRandom) {
+        // 随机获取Bing历史壁纸 (手机版1080P高清)
+        // 添加时间戳防止缓存
+        const timestamp = Date.now()
+        const randomUrl = `https://bing.img.run/rand_m.php?t=${timestamp}`
+        return randomUrl
+      } else {
+        // 获取Bing每日壁纸
+        const bingUrl = 'https://cn.bing.com/HPImageArchive.aspx?format=js&idx=0&n=1&mkt=zh-CN'
+        
+        return new Promise((resolve, reject) => {
+          wx.request({
+            url: bingUrl,
+            method: 'GET',
+            success: (res: any) => {
+              if (res.statusCode === 200 && res.data && res.data.images && res.data.images[0]) {
+                const imageUrl = 'https://cn.bing.com' + res.data.images[0].url
+                resolve(imageUrl)
+              } else {
+                reject(new Error('获取Bing壁纸失败'))
+              }
+            },
+            fail: (err) => {
+              console.error('请求Bing壁纸API失败:', err)
+              reject(err)
+            }
+          })
+        })
+      }
+    } catch (error) {
+      console.error('getBingDailyImage error:', error)
+      throw error
+    }
+  },
+
+  // 下载图片到本地临时路径
+  async downloadImage(url: string): Promise<string> {
+    return new Promise((resolve, reject) => {
+      wx.getImageInfo({
+        src: url,
+        success: (res) => {
+          resolve(res.path)
+        },
+        fail: (err) => {
+          console.error('下载图片失败:', err)
+          reject(err)
+        }
+      })
+    })
+  },
+
+  // 换背景
+  async onRefreshBackground() {
+    if (this.data.isRefreshingBg) return
+    
+    this.setData({ isRefreshingBg: true })
+    wx.vibrateShort({ type: 'light' })
+    
+    try {
+      await this.drawPoster(true, true) // 第二个参数表示使用随机壁纸
+      wx.showToast({
+        title: '背景已更换',
+        icon: 'success',
+        duration: 1500
+      })
+    } catch (error) {
+      wx.showToast({
+        title: '换背景失败',
+        icon: 'none'
+      })
+    } finally {
+      this.setData({ isRefreshingBg: false })
+    }
+  },
+
   // 绘制海报
-  async drawPoster() {
+  async drawPoster(forceRefreshBg: boolean = false, useRandomBg: boolean = false): Promise<void> {
     wx.showLoading({
       title: '书灵正在绘图...',
       mask: true
     })
 
-    try {
-      // 创建离屏 Canvas
-      const query = wx.createSelectorQuery()
-      query.select('#posterCanvas')
-        .fields({ node: true, size: true })
-        .exec(async (res) => {
-          if (!res || !res[0]) {
-            wx.hideLoading()
-            wx.showToast({ title: '获取Canvas失败', icon: 'none' })
-            return
+    return new Promise<void>(async (resolveOuter, rejectOuter) => {
+      try {
+        // 1. 获取背景图
+        let bgImagePath = ''
+        let needNewBg = forceRefreshBg || !this.data.currentBgImageUrl
+        
+        if (needNewBg) {
+          try {
+            const bingUrl = await this.getBingDailyImage(useRandomBg)
+            bgImagePath = await this.downloadImage(bingUrl)
+            this.setData({ currentBgImageUrl: bingUrl })
+          } catch (error) {
+            console.warn('获取Bing壁纸失败，使用默认渐变背景:', error)
+            // 网络图片失败时使用空字符串，后续绘制渐变背景
+            bgImagePath = ''
           }
+        } else {
+          // 使用缓存的背景图
+          try {
+            bgImagePath = await this.downloadImage(this.data.currentBgImageUrl)
+          } catch (error) {
+            console.warn('加载缓存背景失败，使用默认渐变背景:', error)
+            bgImagePath = ''
+          }
+        }
+
+        // 2. 创建离屏 Canvas
+        const query = wx.createSelectorQuery()
+        query.select('#posterCanvas')
+          .fields({ node: true, size: true })
+          .exec(async (res) => {
+            if (!res || !res[0]) {
+              wx.hideLoading()
+              wx.showToast({ title: '获取Canvas失败', icon: 'none' })
+              rejectOuter(new Error('获取Canvas失败'))
+              return
+            }
 
           const canvas = res[0].node
           const ctx = canvas.getContext('2d')
@@ -548,84 +654,126 @@ ${enhancement}
           canvas.height = 1000 * dpr
           ctx.scale(dpr, dpr)
 
-          // 绘制背景渐变
-          const gradient = ctx.createLinearGradient(0, 0, 0, 1000)
-          gradient.addColorStop(0, '#0a1929')
-          gradient.addColorStop(0.5, '#1a2f4a')
-          gradient.addColorStop(1, '#0a1929')
-          ctx.fillStyle = gradient
-          ctx.fillRect(0, 0, 750, 1000)
+          // 3. 绘制背景
+          if (bgImagePath) {
+            // 绘制网络图片背景
+            const bgImage = canvas.createImage()
+            bgImage.src = bgImagePath
+            
+            await new Promise<void>((resolve) => {
+              bgImage.onload = () => {
+                // 等比例填充铺满，居中裁剪
+                const canvasRatio = 750 / 1000
+                const imgRatio = bgImage.width / bgImage.height
+                
+                let drawWidth, drawHeight, offsetX, offsetY
+                
+                if (imgRatio > canvasRatio) {
+                  // 图片更宽，以高度为准
+                  drawHeight = 1000
+                  drawWidth = bgImage.width * (1000 / bgImage.height)
+                  offsetX = -(drawWidth - 750) / 2
+                  offsetY = 0
+                } else {
+                  // 图片更高，以宽度为准
+                  drawWidth = 750
+                  drawHeight = bgImage.height * (750 / bgImage.width)
+                  offsetX = 0
+                  offsetY = -(drawHeight - 1000) / 2
+                }
+                
+                ctx.drawImage(bgImage, offsetX, offsetY, drawWidth, drawHeight)
+                
+                // 绘制半透明黑色蒙层
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.45)'
+                ctx.fillRect(0, 0, 750, 1000)
+                
+                resolve()
+              }
+              
+              bgImage.onerror = () => {
+                console.error('图片加载失败，使用渐变背景')
+                this.drawGradientBackground(ctx)
+                resolve()
+              }
+            })
+          } else {
+            // 绘制默认渐变背景
+            this.drawGradientBackground(ctx)
+          }
 
-          // 绘制星光效果
-          this.drawStars(ctx)
-
-          // 获取分类信息
+          // 4. 获取分类信息
           const category = this.data.categories.find(
             cat => cat.key === (this.data.selectedCategory || 'general')
           ) || this.data.categories[6]
 
-          // 顶部：分类图标和名称
+          // 5. 内边距（让构图有呼吸感）
+          const padding = 40
+
+          // 6. 顶部：分类图标和名称
           ctx.font = '48px sans-serif'
           ctx.textAlign = 'center'
-          ctx.fillText(category.icon, 375, 100)
+          ctx.fillStyle = '#ffffff'
+          ctx.fillText(category.icon, 375, 100 + padding)
 
           ctx.font = 'bold 32px sans-serif'
           ctx.fillStyle = '#ffffff'
-          ctx.fillText(category.name, 375, 160)
+          ctx.fillText(category.name, 375, 160 + padding)
 
-          // 中间：核心答案（大字体 + 倒影效果）
-          ctx.font = 'bold 64px sans-serif'
+          // 7. 中间：核心答案（大字体 + 阴影）
+          ctx.font = 'bold 68px sans-serif'
           ctx.fillStyle = '#ffffff'
           ctx.textAlign = 'center'
-          ctx.shadowColor = 'rgba(255, 255, 255, 0.5)'
-          ctx.shadowBlur = 30
+          ctx.shadowColor = 'rgba(0, 0, 0, 0.6)'
+          ctx.shadowBlur = 20
           ctx.shadowOffsetX = 0
-          ctx.shadowOffsetY = 0
-          ctx.fillText(`「 ${this.data.resultAnswer} 」`, 375, 280)
+          ctx.shadowOffsetY = 4
+          ctx.fillText(`「 ${this.data.resultAnswer} 」`, 375, 350)
           
           // 清除阴影
           ctx.shadowColor = 'transparent'
           ctx.shadowBlur = 0
+          ctx.shadowOffsetX = 0
+          ctx.shadowOffsetY = 0
 
-          // 绘制装饰线
-          ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)'
-          ctx.lineWidth = 1
+          // 8. 绘制装饰线
+          ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)'
+          ctx.lineWidth = 2
           ctx.beginPath()
-          ctx.moveTo(150, 330)
-          ctx.lineTo(600, 330)
+          ctx.moveTo(150, 420)
+          ctx.lineTo(600, 420)
           ctx.stroke()
 
-          // 正文：AI解读（自动换行）
+          // 9. AI解读（自动换行，带内边距）
           const analysis = this.data.fullAnalysis || '红了樱桃、绿了芭蕉，时间会告诉我们一切'
-          ctx.font = '24px sans-serif'
-          ctx.fillStyle = 'rgba(255, 255, 255, 0.9)'
-          ctx.textAlign = 'left'
-          this.drawMultilineText(ctx, analysis, 80, 380, 590, 30)
+          ctx.font = '26px sans-serif'
+          ctx.fillStyle = 'rgba(255, 255, 255, 0.95)'
+          ctx.textAlign = 'center'
+          this.drawMultilineTextCentered(ctx, analysis, 375, 480, 670, 36)
 
-          // 底部：时间戳
-          ctx.font = '20px sans-serif'
-          ctx.fillStyle = 'rgba(255, 255, 255, 0.6)'
+          // 10. 底部：时间戳
+          ctx.font = '22px sans-serif'
+          ctx.fillStyle = 'rgba(255, 255, 255, 0.7)'
           ctx.textAlign = 'center'
           ctx.fillText(`记录于 ${this.data.resultTimestamp}`, 375, 880)
 
-          // 品牌水印
-          ctx.font = '18px sans-serif'
-          ctx.fillStyle = 'rgba(255, 255, 255, 0.4)'
+          // 11. 品牌水印
+          ctx.font = '20px sans-serif'
+          ctx.fillStyle = 'rgba(255, 255, 255, 0.5)'
           ctx.fillText('—— 来自《心之解惑》书灵', 375, 920)
 
-          // 小程序码占位符（圆形）
-          ctx.fillStyle = 'rgba(255, 255, 255, 0.1)'
+          // 12. 小程序码占位符（圆形 + 提示）
+          ctx.fillStyle = 'rgba(255, 255, 255, 0.15)'
           ctx.beginPath()
           ctx.arc(120, 950, 40, 0, 2 * Math.PI)
           ctx.fill()
 
-          // 提示文字
-          ctx.font = '16px sans-serif'
-          ctx.fillStyle = 'rgba(255, 255, 255, 0.5)'
+          ctx.font = '18px sans-serif'
+          ctx.fillStyle = 'rgba(255, 255, 255, 0.6)'
           ctx.textAlign = 'left'
           ctx.fillText('扫码体验', 180, 960)
 
-          // 导出图片
+          // 13. 导出图片
           setTimeout(() => {
             wx.canvasToTempFilePath({
               canvas: canvas,
@@ -635,20 +783,37 @@ ${enhancement}
                   posterImagePath: res.tempFilePath,
                   showPosterModal: true
                 })
+                resolveOuter() // 成功完成
               },
               fail: (err) => {
                 wx.hideLoading()
                 console.error('导出图片失败:', err)
                 wx.showToast({ title: '生成失败', icon: 'none' })
+                rejectOuter(err) // 失败
               }
             })
           }, 300)
         })
-    } catch (error) {
-      wx.hideLoading()
-      console.error('绘制海报失败:', error)
-      wx.showToast({ title: '生成失败', icon: 'none' })
-    }
+      } catch (error) {
+        wx.hideLoading()
+        console.error('绘制海报失败:', error)
+        wx.showToast({ title: '生成失败', icon: 'none' })
+        rejectOuter(error)
+      }
+    })
+  },
+
+  // 绘制默认渐变背景
+  drawGradientBackground(ctx: any) {
+    const gradient = ctx.createLinearGradient(0, 0, 0, 1000)
+    gradient.addColorStop(0, '#0a1929')
+    gradient.addColorStop(0.5, '#1a2f4a')
+    gradient.addColorStop(1, '#0a1929')
+    ctx.fillStyle = gradient
+    ctx.fillRect(0, 0, 750, 1000)
+    
+    // 绘制星光效果
+    this.drawStars(ctx)
   },
 
   // 绘制星光效果
@@ -699,6 +864,33 @@ ${enhancement}
     })
   },
 
+  // 多行文本绘制（居中对齐）
+  drawMultilineTextCentered(ctx: any, text: string, centerX: number, y: number, maxWidth: number, lineHeight: number) {
+    const lines: string[] = []
+    let currentLine = ''
+
+    for (let i = 0; i < text.length; i++) {
+      const char = text[i]
+      const testLine = currentLine + char
+      const metrics = ctx.measureText(testLine)
+
+      if (metrics.width > maxWidth && currentLine) {
+        lines.push(currentLine)
+        currentLine = char
+      } else {
+        currentLine = testLine
+      }
+    }
+    if (currentLine) {
+      lines.push(currentLine)
+    }
+
+    // 居中绘制文本行
+    lines.forEach((line, index) => {
+      ctx.fillText(line, centerX, y + index * lineHeight)
+    })
+  },
+
   // 关闭海报弹窗
   onClosePosterModal() {
     this.setData({
@@ -735,9 +927,7 @@ ${enhancement}
             title: '已保存到相册',
             icon: 'success'
           })
-          this.setData({
-            showPosterModal: false
-          })
+          // 不自动关闭弹窗,让用户可以继续操作(如换背景、分享等)
         },
         fail: (err) => {
           if (err.errMsg.includes('auth deny')) {
@@ -778,6 +968,7 @@ ${enhancement}
 
   // 分享给好友
   onShareAppMessage() {
+    // 不自动关闭弹窗,让用户可以继续操作
     return {
       title: `我抽到了答案：「${this.data.resultAnswer}」，你也来听听书灵的解读`,
       path: '/pages/home/home',

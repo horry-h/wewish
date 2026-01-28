@@ -1,5 +1,5 @@
 // pages/seeking/seeking.ts
-import { zenQuotes } from '../../utils/answers'
+import { zenQuotes } from '../../utils/answers-new'
 
 Page({
   data: {

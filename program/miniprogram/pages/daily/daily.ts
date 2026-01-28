@@ -1,5 +1,5 @@
 // pages/daily/daily.ts
-import { getDailyFortune, getLunarDate } from '../../utils/answers'
+import { getDailyFortune, getLunarDate } from '../../utils/answers-new'
 
 Page({
   data: {

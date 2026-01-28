@@ -1,5 +1,5 @@
 // pages/result/result.ts
-import { getWeightedAnswer } from '../../utils/answers'
+import { getWeightedAnswer } from '../../utils/answers-new'
 
 Page({
   data: {

@@ -1,0 +1,746 @@
+// utils/answers-new.ts
+
+/**
+ * 扩展答案数据结构
+ */
+interface Answer {
+  id: number
+  text: string
+  tags: string[]
+  type: 'positive' | 'neutral' | 'cautious'
+}
+
+/**
+ * 核心答案库 (500条)
+ * 基于《答案之书》风格，融合治愈、哲理、现代生活共鸣
+ */
+export const fullAnswerPool: Answer[] = [
+  // ========== 正向鼓励类 (积极行动) ==========
+  { id: 1, text: "现在就是最好的时机", tags: ["career", "dream", "general"], type: "positive" },
+  { id: 2, text: "勇敢表达", tags: ["emotion", "general"], type: "positive" },
+  { id: 3, text: "大胆尝试", tags: ["career", "dream", "wealth"], type: "positive" },
+  { id: 4, text: "此刻就做", tags: ["dream", "career", "general"], type: "positive" },
+  { id: 5, text: "相信自己", tags: ["general", "dream", "study"], type: "positive" },
+  { id: 6, text: "值得冒险", tags: ["career", "dream", "wealth"], type: "positive" },
+  { id: 7, text: "时机已到", tags: ["dream", "career", "emotion"], type: "positive" },
+  { id: 8, text: "勇往直前", tags: ["career", "dream", "general"], type: "positive" },
+  { id: 9, text: "突破束缚", tags: ["dream", "career", "emotion"], type: "positive" },
+  { id: 10, text: "主动出击", tags: ["emotion", "career", "wealth"], type: "positive" },
+  
+  { id: 11, text: "坚持初心", tags: ["dream", "career", "study"], type: "positive" },
+  { id: 12, text: "不留遗憾", tags: ["dream", "emotion", "general"], type: "positive" },
+  { id: 13, text: "放手一搏", tags: ["career", "wealth", "dream"], type: "positive" },
+  { id: 14, text: "听从内心", tags: ["emotion", "dream", "general"], type: "positive" },
+  { id: 15, text: "无需犹豫", tags: ["general", "career", "emotion"], type: "positive" },
+  { id: 16, text: "相信直觉", tags: ["general", "emotion", "wealth"], type: "positive" },
+  { id: 17, text: "勇敢开始", tags: ["dream", "career", "study"], type: "positive" },
+  { id: 18, text: "追随热爱", tags: ["dream", "career", "emotion"], type: "positive" },
+  { id: 19, text: "打破常规", tags: ["career", "dream", "general"], type: "positive" },
+  { id: 20, text: "释放真实", tags: ["emotion", "general", "dream"], type: "positive" },
+
+  { id: 21, text: "迈出第一步", tags: ["dream", "career", "emotion"], type: "positive" },
+  { id: 22, text: "现在行动", tags: ["career", "study", "general"], type: "positive" },
+  { id: 23, text: "信任过程", tags: ["general", "dream", "study"], type: "positive" },
+  { id: 24, text: "顺应天时", tags: ["general", "wealth", "career"], type: "positive" },
+  { id: 25, text: "拥抱变化", tags: ["career", "dream", "emotion"], type: "positive" },
+  { id: 26, text: "果断决定", tags: ["career", "wealth", "general"], type: "positive" },
+  { id: 27, text: "说出真心话", tags: ["emotion", "general"], type: "positive" },
+  { id: 28, text: "值得拥有", tags: ["dream", "wealth", "emotion"], type: "positive" },
+  { id: 29, text: "大胆想象", tags: ["dream", "career", "general"], type: "positive" },
+  { id: 30, text: "跟随直觉走", tags: ["general", "emotion", "dream"], type: "positive" },
+
+  { id: 31, text: "是的", tags: ["general", "emotion", "career"], type: "positive" },
+  { id: 32, text: "毫无疑问", tags: ["general", "career", "study"], type: "positive" },
+  { id: 33, text: "答案是肯定的", tags: ["general", "career", "emotion"], type: "positive" },
+  { id: 34, text: "你已准备好", tags: ["dream", "career", "study"], type: "positive" },
+  { id: 35, text: "放心前行", tags: ["career", "dream", "general"], type: "positive" },
+  { id: 36, text: "一切都会好的", tags: ["general", "emotion", "health"], type: "positive" },
+  { id: 37, text: "风险可控", tags: ["wealth", "career", "general"], type: "positive" },
+  { id: 38, text: "星星会为你指路", tags: ["dream", "general"], type: "positive" },
+  { id: 39, text: "幸运站在你这边", tags: ["wealth", "general", "career"], type: "positive" },
+  { id: 40, text: "顺风顺水", tags: ["career", "wealth", "general"], type: "positive" },
+
+  { id: 41, text: "尽管去做", tags: ["career", "dream", "general"], type: "positive" },
+  { id: 42, text: "无需畏惧", tags: ["dream", "emotion", "general"], type: "positive" },
+  { id: 43, text: "勇气会指引你", tags: ["dream", "career", "emotion"], type: "positive" },
+  { id: 44, text: "向前看", tags: ["general", "career", "emotion"], type: "positive" },
+  { id: 45, text: "展现真实的自己", tags: ["emotion", "dream", "general"], type: "positive" },
+  { id: 46, text: "不必隐藏", tags: ["emotion", "general"], type: "positive" },
+  { id: 47, text: "让心说话", tags: ["emotion", "general", "dream"], type: "positive" },
+  { id: 48, text: "全力以赴", tags: ["career", "study", "dream"], type: "positive" },
+  { id: 49, text: "投入其中", tags: ["career", "study", "emotion"], type: "positive" },
+  { id: 50, text: "专注当下", tags: ["study", "health", "general"], type: "positive" },
+
+  // ========== 等待观望类 (中性引导) ==========
+  { id: 51, text: "再等等", tags: ["general", "emotion", "career"], type: "neutral" },
+  { id: 52, text: "时机未到", tags: ["general", "career", "wealth"], type: "neutral" },
+  { id: 53, text: "顺其自然", tags: ["general", "emotion", "health"], type: "neutral" },
+  { id: 54, text: "耐心一些", tags: ["general", "emotion", "study"], type: "neutral" },
+  { id: 55, text: "慢慢来", tags: ["study", "health", "general"], type: "neutral" },
+  { id: 56, text: "让子弹飞一会儿", tags: ["career", "general", "wealth"], type: "neutral" },
+  { id: 57, text: "保持观望", tags: ["career", "wealth", "general"], type: "neutral" },
+  { id: 58, text: "暂时观察", tags: ["general", "career", "emotion"], type: "neutral" },
+  { id: 59, text: "给时间时间", tags: ["emotion", "general", "career"], type: "neutral" },
+  { id: 60, text: "等待明朗", tags: ["career", "wealth", "general"], type: "neutral" },
+
+  { id: 61, text: "花开需要季节", tags: ["dream", "emotion", "general"], type: "neutral" },
+  { id: 62, text: "静观其变", tags: ["career", "emotion", "general"], type: "neutral" },
+  { id: 63, text: "不急不躁", tags: ["general", "study", "health"], type: "neutral" },
+  { id: 64, text: "让它自然发生", tags: ["emotion", "general"], type: "neutral" },
+  { id: 65, text: "保持平常心", tags: ["general", "health", "study"], type: "neutral" },
+  { id: 66, text: "答案会自己显现", tags: ["general", "dream"], type: "neutral" },
+  { id: 67, text: "水到渠成", tags: ["career", "emotion", "general"], type: "neutral" },
+  { id: 68, text: "静待花开", tags: ["emotion", "dream", "general"], type: "neutral" },
+  { id: 69, text: "该来的总会来", tags: ["general", "emotion", "wealth"], type: "neutral" },
+  { id: 70, text: "万事有时", tags: ["general", "career", "emotion"], type: "neutral" },
+
+  { id: 71, text: "容许不确定性", tags: ["general", "emotion", "dream"], type: "neutral" },
+  { id: 72, text: "留白也是答案", tags: ["general", "emotion"], type: "neutral" },
+  { id: 73, text: "在等待中成长", tags: ["dream", "study", "general"], type: "neutral" },
+  { id: 74, text: "慢即是快", tags: ["study", "career", "general"], type: "neutral" },
+  { id: 75, text: "急不得", tags: ["general", "emotion", "study"], type: "neutral" },
+  { id: 76, text: "时候未到", tags: ["career", "wealth", "general"], type: "neutral" },
+  { id: 77, text: "稳住气息", tags: ["general", "health", "study"], type: "neutral" },
+  { id: 78, text: "保持节奏", tags: ["study", "career", "health"], type: "neutral" },
+  { id: 79, text: "莫要强求", tags: ["emotion", "general", "health"], type: "neutral" },
+  { id: 80, text: "随遇而安", tags: ["general", "emotion"], type: "neutral" },
+
+  { id: 81, text: "或许", tags: ["general"], type: "neutral" },
+  { id: 82, text: "再想想", tags: ["general", "career", "wealth"], type: "neutral" },
+  { id: 83, text: "还需斟酌", tags: ["career", "wealth", "general"], type: "neutral" },
+  { id: 84, text: "不妨再等等", tags: ["general", "emotion", "career"], type: "neutral" },
+  { id: 85, text: "暂不表态", tags: ["general", "career"], type: "neutral" },
+  { id: 86, text: "保留判断", tags: ["career", "wealth", "general"], type: "neutral" },
+  { id: 87, text: "听天由命", tags: ["general", "emotion"], type: "neutral" },
+  { id: 88, text: "交给时间", tags: ["emotion", "general", "career"], type: "neutral" },
+  { id: 89, text: "让生活来回答", tags: ["general", "emotion"], type: "neutral" },
+  { id: 90, text: "顺应天意", tags: ["general", "wealth"], type: "neutral" },
+
+  // ========== 谨慎思考类 (引导反思) ==========
+  { id: 91, text: "三思而后行", tags: ["career", "wealth", "general"], type: "cautious" },
+  { id: 92, text: "问问身边人", tags: ["general", "career", "emotion"], type: "cautious" },
+  { id: 93, text: "寻求专业意见", tags: ["career", "health", "wealth"], type: "cautious" },
+  { id: 94, text: "再考虑一下", tags: ["general", "career", "wealth"], type: "cautious" },
+  { id: 95, text: "听听不同声音", tags: ["career", "general", "emotion"], type: "cautious" },
+  { id: 96, text: "收集更多信息", tags: ["career", "study", "wealth"], type: "cautious" },
+  { id: 97, text: "评估风险", tags: ["wealth", "career", "general"], type: "cautious" },
+  { id: 98, text: "谨慎为上", tags: ["wealth", "career", "general"], type: "cautious" },
+  { id: 99, text: "稳妥一些", tags: ["career", "wealth", "general"], type: "cautious" },
+  { id: 100, text: "不", tags: ["general"], type: "cautious" },
+
+  { id: 101, text: "暂时不宜", tags: ["general", "career", "emotion"], type: "cautious" },
+  { id: 102, text: "时机不对", tags: ["career", "emotion", "wealth"], type: "cautious" },
+  { id: 103, text: "保持距离", tags: ["emotion", "general"], type: "cautious" },
+  { id: 104, text: "给彼此空间", tags: ["emotion", "general"], type: "cautious" },
+  { id: 105, text: "保守策略", tags: ["wealth", "career", "general"], type: "cautious" },
+  { id: 106, text: "守住底线", tags: ["career", "wealth", "general"], type: "cautious" },
+  { id: 107, text: "明确界限", tags: ["emotion", "career", "general"], type: "cautious" },
+  { id: 108, text: "保护自己", tags: ["emotion", "health", "general"], type: "cautious" },
+  { id: 109, text: "量力而行", tags: ["career", "wealth", "health"], type: "cautious" },
+  { id: 110, text: "适度即可", tags: ["general", "health", "wealth"], type: "cautious" },
+
+  { id: 111, text: "别急于求成", tags: ["career", "study", "general"], type: "cautious" },
+  { id: 112, text: "循序渐进", tags: ["study", "career", "health"], type: "cautious" },
+  { id: 113, text: "小步试探", tags: ["career", "emotion", "wealth"], type: "cautious" },
+  { id: 114, text: "先打好基础", tags: ["study", "career", "general"], type: "cautious" },
+  { id: 115, text: "回归基本功", tags: ["study", "career", "general"], type: "cautious" },
+  { id: 116, text: "冷静观察", tags: ["career", "emotion", "general"], type: "cautious" },
+  { id: 117, text: "理性分析", tags: ["career", "wealth", "study"], type: "cautious" },
+  { id: 118, text: "对照初心", tags: ["dream", "career", "general"], type: "cautious" },
+  { id: 119, text: "重新审视", tags: ["career", "emotion", "general"], type: "cautious" },
+  { id: 120, text: "换个角度", tags: ["general", "career", "study"], type: "cautious" },
+
+  // ========== 调整改变类 ==========
+  { id: 121, text: "调整方向", tags: ["career", "study", "dream"], type: "neutral" },
+  { id: 122, text: "转换思路", tags: ["career", "study", "general"], type: "neutral" },
+  { id: 123, text: "尝试新方法", tags: ["study", "career", "general"], type: "positive" },
+  { id: 124, text: "寻找另一条路", tags: ["career", "dream", "general"], type: "neutral" },
+  { id: 125, text: "改变策略", tags: ["career", "wealth", "study"], type: "neutral" },
+  { id: 126, text: "灵活应变", tags: ["career", "general"], type: "positive" },
+  { id: 127, text: "适时放手", tags: ["emotion", "career", "general"], type: "neutral" },
+  { id: 128, text: "放下执念", tags: ["emotion", "general", "dream"], type: "neutral" },
+  { id: 129, text: "接受变化", tags: ["general", "career", "emotion"], type: "neutral" },
+  { id: 130, text: "重新开始", tags: ["career", "emotion", "dream"], type: "positive" },
+
+  { id: 131, text: "断舍离", tags: ["emotion", "general", "health"], type: "neutral" },
+  { id: 132, text: "做减法", tags: ["general", "health", "career"], type: "neutral" },
+  { id: 133, text: "简化复杂", tags: ["career", "general", "study"], type: "neutral" },
+  { id: 134, text: "回归简单", tags: ["general", "health", "emotion"], type: "neutral" },
+  { id: 135, text: "清空重启", tags: ["career", "emotion", "general"], type: "neutral" },
+  { id: 136, text: "告别过去", tags: ["emotion", "general", "dream"], type: "neutral" },
+  { id: 137, text: "向前看齐", tags: ["career", "dream", "general"], type: "positive" },
+  { id: 138, text: "拥抱新生", tags: ["dream", "career", "emotion"], type: "positive" },
+  { id: 139, text: "破而后立", tags: ["career", "dream", "general"], type: "neutral" },
+  { id: 140, text: "推倒重来", tags: ["career", "study", "dream"], type: "neutral" },
+
+  // ========== 坚持守护类 ==========
+  { id: 141, text: "坚守立场", tags: ["career", "emotion", "general"], type: "positive" },
+  { id: 142, text: "保持本心", tags: ["dream", "general", "emotion"], type: "positive" },
+  { id: 143, text: "不忘初衷", tags: ["dream", "career", "general"], type: "positive" },
+  { id: 144, text: "继续努力", tags: ["study", "career", "dream"], type: "positive" },
+  { id: 145, text: "再坚持一下", tags: ["study", "career", "general"], type: "positive" },
+  { id: 146, text: "守住阵地", tags: ["career", "wealth", "general"], type: "positive" },
+  { id: 147, text: "不轻言放弃", tags: ["dream", "career", "emotion"], type: "positive" },
+  { id: 148, text: "相信积累的力量", tags: ["study", "career", "wealth"], type: "positive" },
+  { id: 149, text: "量变会质变", tags: ["study", "career", "general"], type: "positive" },
+  { id: 150, text: "坚定信念", tags: ["dream", "general", "career"], type: "positive" },
+
+  { id: 151, text: "保持专注", tags: ["study", "career", "general"], type: "positive" },
+  { id: 152, text: "持之以恒", tags: ["study", "career", "health"], type: "positive" },
+  { id: 153, text: "日拱一卒", tags: ["study", "career", "dream"], type: "positive" },
+  { id: 154, text: "积少成多", tags: ["wealth", "study", "career"], type: "positive" },
+  { id: 155, text: "不积跬步无以至千里", tags: ["study", "career", "dream"], type: "positive" },
+  { id: 156, text: "守得云开见月明", tags: ["general", "career", "emotion"], type: "positive" },
+  { id: 157, text: "功不唐捐", tags: ["study", "career", "general"], type: "positive" },
+  { id: 158, text: "耐得住寂寞", tags: ["career", "study", "dream"], type: "positive" },
+  { id: 159, text: "沉住气", tags: ["general", "career", "study"], type: "positive" },
+  { id: 160, text: "稳扎稳打", tags: ["career", "wealth", "study"], type: "positive" },
+
+  // ========== 自我关照类 ==========
+  { id: 161, text: "善待自己", tags: ["health", "general", "emotion"], type: "positive" },
+  { id: 162, text: "允许休息", tags: ["health", "general", "study"], type: "positive" },
+  { id: 163, text: "倾听身体", tags: ["health", "general"], type: "positive" },
+  { id: 164, text: "释放压力", tags: ["health", "general", "emotion"], type: "positive" },
+  { id: 165, text: "劳逸结合", tags: ["study", "career", "health"], type: "positive" },
+  { id: 166, text: "放慢节奏", tags: ["health", "general", "study"], type: "neutral" },
+  { id: 167, text: "给自己喘息", tags: ["health", "general"], type: "positive" },
+  { id: 168, text: "温柔对待情绪", tags: ["emotion", "health", "general"], type: "positive" },
+  { id: 169, text: "接纳不完美", tags: ["general", "emotion", "dream"], type: "positive" },
+  { id: 170, text: "拥抱脆弱", tags: ["emotion", "general", "health"], type: "positive" },
+
+  { id: 171, text: "不必苛求", tags: ["general", "study", "health"], type: "neutral" },
+  { id: 172, text: "允许失败", tags: ["dream", "career", "general"], type: "positive" },
+  { id: 173, text: "给自己空间", tags: ["emotion", "health", "general"], type: "positive" },
+  { id: 174, text: "学会说不", tags: ["emotion", "career", "general"], type: "positive" },
+  { id: 175, text: "保护能量", tags: ["health", "general", "emotion"], type: "positive" },
+  { id: 176, text: "优先照顾自己", tags: ["health", "general"], type: "positive" },
+  { id: 177, text: "卸下包袱", tags: ["emotion", "health", "general"], type: "positive" },
+  { id: 178, text: "释放期待", tags: ["emotion", "general"], type: "neutral" },
+  { id: 179, text: "轻装上阵", tags: ["career", "general", "dream"], type: "positive" },
+  { id: 180, text: "不背负太多", tags: ["emotion", "health", "general"], type: "neutral" },
+
+  // ========== 学习成长类 ==========
+  { id: 181, text: "学习新技能", tags: ["study", "career", "general"], type: "positive" },
+  { id: 182, text: "充实自己", tags: ["study", "career", "dream"], type: "positive" },
+  { id: 183, text: "寻求指导", tags: ["study", "career", "general"], type: "positive" },
+  { id: 184, text: "请教高手", tags: ["study", "career", "general"], type: "positive" },
+  { id: 185, text: "向书本求解", tags: ["study", "general"], type: "positive" },
+  { id: 186, text: "实践出真知", tags: ["study", "career", "general"], type: "positive" },
+  { id: 187, text: "从错误中学习", tags: ["study", "career", "general"], type: "positive" },
+  { id: 188, text: "复盘总结", tags: ["career", "study", "general"], type: "positive" },
+  { id: 189, text: "温故知新", tags: ["study", "general"], type: "positive" },
+  { id: 190, text: "举一反三", tags: ["study", "career", "general"], type: "positive" },
+
+  { id: 191, text: "建立体系", tags: ["study", "career", "general"], type: "positive" },
+  { id: 192, text: "深度思考", tags: ["study", "career", "general"], type: "positive" },
+  { id: 193, text: "打通关节", tags: ["study", "career", "general"], type: "positive" },
+  { id: 194, text: "融会贯通", tags: ["study", "career", "general"], type: "positive" },
+  { id: 195, text: "知行合一", tags: ["study", "career", "general"], type: "positive" },
+  { id: 196, text: "突破瓶颈", tags: ["study", "career", "dream"], type: "positive" },
+  { id: 197, text: "跳出舒适区", tags: ["career", "dream", "general"], type: "positive" },
+  { id: 198, text: "挑战极限", tags: ["career", "dream", "study"], type: "positive" },
+  { id: 199, text: "拓宽视野", tags: ["study", "career", "dream"], type: "positive" },
+  { id: 200, text: "多元尝试", tags: ["career", "dream", "general"], type: "positive" },
+
+  // ========== 人际关系类 ==========
+  { id: 201, text: "坦诚相待", tags: ["emotion", "career", "general"], type: "positive" },
+  { id: 202, text: "敞开心扉", tags: ["emotion", "general"], type: "positive" },
+  { id: 203, text: "主动沟通", tags: ["emotion", "career", "general"], type: "positive" },
+  { id: 204, text: "倾听对方", tags: ["emotion", "career", "general"], type: "positive" },
+  { id: 205, text: "换位思考", tags: ["emotion", "career", "general"], type: "positive" },
+  { id: 206, text: "寻求共识", tags: ["career", "emotion", "general"], type: "positive" },
+  { id: 207, text: "团队协作", tags: ["career", "general"], type: "positive" },
+  { id: 208, text: "寻求帮助", tags: ["career", "study", "general"], type: "positive" },
+  { id: 209, text: "主动分享", tags: ["career", "emotion", "general"], type: "positive" },
+  { id: 210, text: "建立连接", tags: ["emotion", "career", "general"], type: "positive" },
+
+  { id: 211, text: "珍惜缘分", tags: ["emotion", "general"], type: "positive" },
+  { id: 212, text: "维系关系", tags: ["emotion", "general"], type: "positive" },
+  { id: 213, text: "表达感激", tags: ["emotion", "general"], type: "positive" },
+  { id: 214, text: "化解误会", tags: ["emotion", "career", "general"], type: "positive" },
+  { id: 215, text: "修复裂痕", tags: ["emotion", "general"], type: "positive" },
+  { id: 216, text: "求同存异", tags: ["emotion", "career", "general"], type: "neutral" },
+  { id: 217, text: "保持边界", tags: ["emotion", "general"], type: "neutral" },
+  { id: 218, text: "独立自主", tags: ["emotion", "career", "general"], type: "positive" },
+  { id: 219, text: "不依赖他人", tags: ["emotion", "general"], type: "neutral" },
+  { id: 220, text: "独处也很好", tags: ["emotion", "general", "health"], type: "positive" },
+
+  // ========== 财富智慧类 ==========
+  { id: 221, text: "谨慎投资", tags: ["wealth", "general"], type: "cautious" },
+  { id: 222, text: "分散风险", tags: ["wealth", "general"], type: "cautious" },
+  { id: 223, text: "量入为出", tags: ["wealth", "general"], type: "cautious" },
+  { id: 224, text: "守住本金", tags: ["wealth", "general"], type: "cautious" },
+  { id: 225, text: "稳中求进", tags: ["wealth", "career", "general"], type: "neutral" },
+  { id: 226, text: "长期持有", tags: ["wealth", "general"], type: "neutral" },
+  { id: 227, text: "价值投资", tags: ["wealth", "general"], type: "neutral" },
+  { id: 228, text: "学习理财", tags: ["wealth", "study", "general"], type: "positive" },
+  { id: 229, text: "开源节流", tags: ["wealth", "general"], type: "positive" },
+  { id: 230, text: "增加收入渠道", tags: ["wealth", "career", "general"], type: "positive" },
+
+  { id: 231, text: "及时止损", tags: ["wealth", "general"], type: "neutral" },
+  { id: 232, text: "不贪婪", tags: ["wealth", "general"], type: "cautious" },
+  { id: 233, text: "适度即止", tags: ["wealth", "general", "health"], type: "cautious" },
+  { id: 234, text: "见好就收", tags: ["wealth", "general"], type: "cautious" },
+  { id: 235, text: "耐心等待机会", tags: ["wealth", "general", "career"], type: "neutral" },
+  { id: 236, text: "积累才是王道", tags: ["wealth", "study", "career"], type: "positive" },
+  { id: 237, text: "复利的力量", tags: ["wealth", "general"], type: "positive" },
+  { id: 238, text: "提升自身价值", tags: ["career", "study", "wealth"], type: "positive" },
+  { id: 239, text: "投资自己", tags: ["study", "career", "wealth"], type: "positive" },
+  { id: 240, text: "技能即财富", tags: ["study", "career", "wealth"], type: "positive" },
+
+  // ========== 梦想追逐类 ==========
+  { id: 241, text: "从小事做起", tags: ["dream", "career", "general"], type: "positive" },
+  { id: 242, text: "种下种子", tags: ["dream", "general"], type: "positive" },
+  { id: 243, text: "画出蓝图", tags: ["dream", "career", "general"], type: "positive" },
+  { id: 244, text: "制定计划", tags: ["dream", "study", "career"], type: "positive" },
+  { id: 245, text: "分解目标", tags: ["dream", "study", "career"], type: "positive" },
+  { id: 246, text: "一步一个脚印", tags: ["dream", "career", "study"], type: "positive" },
+  { id: 247, text: "享受过程", tags: ["dream", "general"], type: "positive" },
+  { id: 248, text: "活在当下", tags: ["general", "health"], type: "positive" },
+  { id: 249, text: "不急着要结果", tags: ["dream", "general"], type: "neutral" },
+  { id: 250, text: "路比目的地重要", tags: ["dream", "general"], type: "neutral" },
+
+  { id: 251, text: "无需完美才开始", tags: ["dream", "career", "general"], type: "positive" },
+  { id: 252, text: "行动胜过空想", tags: ["dream", "career", "general"], type: "positive" },
+  { id: 253, text: "边走边调整", tags: ["dream", "career", "general"], type: "neutral" },
+  { id: 254, text: "给自己试错空间", tags: ["dream", "career", "general"], type: "positive" },
+  { id: 255, text: "失败也是收获", tags: ["dream", "career", "study"], type: "positive" },
+  { id: 256, text: "每一步都算数", tags: ["dream", "career", "study"], type: "positive" },
+  { id: 257, text: "相信未来的自己", tags: ["dream", "general"], type: "positive" },
+  { id: 258, text: "写下愿望", tags: ["dream", "general"], type: "positive" },
+  { id: 259, text: "大声说出梦想", tags: ["dream", "emotion", "general"], type: "positive" },
+  { id: 260, text: "找到同行者", tags: ["dream", "career", "general"], type: "positive" },
+
+  // ========== 情感智慧类 ==========
+  { id: 261, text: "说出心里话", tags: ["emotion", "general"], type: "positive" },
+  { id: 262, text: "表达真实感受", tags: ["emotion", "general"], type: "positive" },
+  { id: 263, text: "不压抑情绪", tags: ["emotion", "health", "general"], type: "positive" },
+  { id: 264, text: "哭出来也好", tags: ["emotion", "health", "general"], type: "positive" },
+  { id: 265, text: "允许悲伤", tags: ["emotion", "general"], type: "positive" },
+  { id: 266, text: "感受即是力量", tags: ["emotion", "general"], type: "positive" },
+  { id: 267, text: "直面恐惧", tags: ["emotion", "general", "dream"], type: "positive" },
+  { id: 268, text: "穿越黑暗", tags: ["emotion", "general", "dream"], type: "positive" },
+  { id: 269, text: "拥抱孤独", tags: ["emotion", "general"], type: "neutral" },
+  { id: 270, text: "与自己和解", tags: ["emotion", "general", "health"], type: "positive" },
+
+  { id: 271, text: "原谅过去", tags: ["emotion", "general"], type: "positive" },
+  { id: 272, text: "放过自己", tags: ["emotion", "general", "health"], type: "positive" },
+  { id: 273, text: "不必完美才被爱", tags: ["emotion", "general"], type: "positive" },
+  { id: 274, text: "真实最有力量", tags: ["emotion", "general"], type: "positive" },
+  { id: 275, text: "脆弱不是软弱", tags: ["emotion", "general"], type: "positive" },
+  { id: 276, text: "哭完就好了", tags: ["emotion", "health", "general"], type: "positive" },
+  { id: 277, text: "明天会更好", tags: ["general", "emotion"], type: "positive" },
+  { id: 278, text: "一切都会过去", tags: ["general", "emotion"], type: "positive" },
+  { id: 279, text: "时间是良药", tags: ["emotion", "general", "health"], type: "neutral" },
+  { id: 280, text: "相信会好的", tags: ["general", "emotion"], type: "positive" },
+
+  // ========== 当下觉察类 ==========
+  { id: 281, text: "回到此刻", tags: ["general", "health"], type: "positive" },
+  { id: 282, text: "感受呼吸", tags: ["health", "general"], type: "positive" },
+  { id: 283, text: "活在当下", tags: ["general", "health"], type: "positive" },
+  { id: 284, text: "觉察身体", tags: ["health", "general"], type: "positive" },
+  { id: 285, text: "专注眼前", tags: ["general", "study", "career"], type: "positive" },
+  { id: 286, text: "一次一件事", tags: ["general", "study", "career"], type: "positive" },
+  { id: 287, text: "放下手机", tags: ["health", "general"], type: "neutral" },
+  { id: 288, text: "走进自然", tags: ["health", "general"], type: "positive" },
+  { id: 289, text: "感受阳光", tags: ["health", "general"], type: "positive" },
+  { id: 290, text: "听听音乐", tags: ["health", "general"], type: "positive" },
+
+  { id: 291, text: "独处一会", tags: ["general", "health", "emotion"], type: "positive" },
+  { id: 292, text: "写下想法", tags: ["general", "emotion", "study"], type: "positive" },
+  { id: 293, text: "画出感受", tags: ["emotion", "general"], type: "positive" },
+  { id: 294, text: "和身体对话", tags: ["health", "general"], type: "positive" },
+  { id: 295, text: "冥想片刻", tags: ["health", "general"], type: "positive" },
+  { id: 296, text: "深呼吸三次", tags: ["health", "general"], type: "positive" },
+  { id: 297, text: "闭眼感受", tags: ["health", "general"], type: "positive" },
+  { id: 298, text: "慢下来", tags: ["general", "health"], type: "neutral" },
+  { id: 299, text: "停一停", tags: ["general", "health"], type: "neutral" },
+  { id: 300, text: "回归内心", tags: ["general", "emotion"], type: "positive" },
+
+  // ========== 平衡智慧类 ==========
+  { id: 301, text: "寻找平衡", tags: ["general", "health", "career"], type: "neutral" },
+  { id: 302, text: "不走极端", tags: ["general", "health"], type: "cautious" },
+  { id: 303, text: "中庸之道", tags: ["general", "career"], type: "neutral" },
+  { id: 304, text: "张弛有度", tags: ["health", "career", "study"], type: "neutral" },
+  { id: 305, text: "刚柔并济", tags: ["general", "career"], type: "neutral" },
+  { id: 306, text: "进退自如", tags: ["career", "general"], type: "neutral" },
+  { id: 307, text: "收放有道", tags: ["general", "career"], type: "neutral" },
+  { id: 308, text: "动静结合", tags: ["health", "general"], type: "neutral" },
+  { id: 309, text: "阴阳调和", tags: ["health", "general"], type: "neutral" },
+  { id: 310, text: "顺应自然", tags: ["general", "health"], type: "neutral" },
+
+  { id: 311, text: "万物有时", tags: ["general"], type: "neutral" },
+  { id: 312, text: "该进则进", tags: ["career", "general"], type: "positive" },
+  { id: 313, text: "该退则退", tags: ["general", "career"], type: "neutral" },
+  { id: 314, text: "审时度势", tags: ["career", "wealth", "general"], type: "neutral" },
+  { id: 315, text: "因时制宜", tags: ["general", "career"], type: "neutral" },
+  { id: 316, text: "随机应变", tags: ["career", "general"], type: "positive" },
+  { id: 317, text: "顺势而为", tags: ["general", "career", "wealth"], type: "neutral" },
+  { id: 318, text: "借力打力", tags: ["career", "general"], type: "positive" },
+  { id: 319, text: "以柔克刚", tags: ["career", "emotion", "general"], type: "neutral" },
+  { id: 320, text: "静待时机", tags: ["general", "career", "wealth"], type: "neutral" },
+
+  // ========== 智慧哲思类 ==========
+  { id: 321, text: "答案在问题里", tags: ["general"], type: "neutral" },
+  { id: 322, text: "你早已知道", tags: ["general", "emotion"], type: "neutral" },
+  { id: 323, text: "心中自有答案", tags: ["general", "emotion"], type: "neutral" },
+  { id: 324, text: "问题即是线索", tags: ["general"], type: "neutral" },
+  { id: 325, text: "困惑通向明晰", tags: ["general", "study"], type: "neutral" },
+  { id: 326, text: "黑暗孕育光明", tags: ["general", "emotion"], type: "positive" },
+  { id: 327, text: "裂痕让光进来", tags: ["general", "emotion"], type: "positive" },
+  { id: 328, text: "不完美才完整", tags: ["general", "emotion"], type: "positive" },
+  { id: 329, text: "失去也是得到", tags: ["general", "emotion"], type: "neutral" },
+  { id: 330, text: "结束是新开始", tags: ["general", "emotion", "career"], type: "positive" },
+
+  { id: 331, text: "路会自己显现", tags: ["general", "dream"], type: "neutral" },
+  { id: 332, text: "该来的会来", tags: ["general", "emotion"], type: "neutral" },
+  { id: 333, text: "该走的会走", tags: ["general", "emotion"], type: "neutral" },
+  { id: 334, text: "放下才能拥有", tags: ["general", "emotion"], type: "neutral" },
+  { id: 335, text: "空杯才能注水", tags: ["general", "study"], type: "neutral" },
+  { id: 336, text: "无为而无不为", tags: ["general"], type: "neutral" },
+  { id: 337, text: "少即是多", tags: ["general", "health"], type: "neutral" },
+  { id: 338, text: "慢即是快", tags: ["general", "study"], type: "neutral" },
+  { id: 339, text: "退即是进", tags: ["general", "career"], type: "neutral" },
+  { id: 340, text: "弱即是强", tags: ["general", "emotion"], type: "neutral" },
+
+  // ========== 生活美学类 ==========
+  { id: 341, text: "去看场电影", tags: ["general", "health"], type: "positive" },
+  { id: 342, text: "读一本好书", tags: ["general", "study", "health"], type: "positive" },
+  { id: 343, text: "听首喜欢的歌", tags: ["general", "health"], type: "positive" },
+  { id: 344, text: "散步一小时", tags: ["health", "general"], type: "positive" },
+  { id: 345, text: "做顿好吃的", tags: ["health", "general"], type: "positive" },
+  { id: 346, text: "泡个热水澡", tags: ["health", "general"], type: "positive" },
+  { id: 347, text: "早睡早起", tags: ["health", "general"], type: "positive" },
+  { id: 348, text: "出去旅行", tags: ["general", "health", "emotion"], type: "positive" },
+  { id: 349, text: "见见老朋友", tags: ["emotion", "general"], type: "positive" },
+  { id: 350, text: "拥抱所爱之人", tags: ["emotion", "general"], type: "positive" },
+
+  { id: 351, text: "买束花给自己", tags: ["general", "emotion"], type: "positive" },
+  { id: 352, text: "晒晒太阳", tags: ["health", "general"], type: "positive" },
+  { id: 353, text: "看看星空", tags: ["general", "emotion"], type: "positive" },
+  { id: 354, text: "感受风的方向", tags: ["general", "health"], type: "positive" },
+  { id: 355, text: "听听雨声", tags: ["general", "health"], type: "positive" },
+  { id: 356, text: "整理房间", tags: ["general", "health"], type: "positive" },
+  { id: 357, text: "换个发型", tags: ["general", "emotion"], type: "positive" },
+  { id: 358, text: "穿上喜欢的衣服", tags: ["general", "emotion"], type: "positive" },
+  { id: 359, text: "做点手工", tags: ["general", "health"], type: "positive" },
+  { id: 360, text: "种一盆植物", tags: ["general", "health"], type: "positive" },
+
+  // ========== 能量管理类 ==========
+  { id: 361, text: "补充能量", tags: ["health", "general"], type: "positive" },
+  { id: 362, text: "充电时刻", tags: ["health", "general"], type: "positive" },
+  { id: 363, text: "休息不是浪费", tags: ["health", "general"], type: "positive" },
+  { id: 364, text: "累了就停下", tags: ["health", "general"], type: "neutral" },
+  { id: 365, text: "恢复优先", tags: ["health", "general"], type: "positive" },
+  { id: 366, text: "别透支自己", tags: ["health", "general"], type: "cautious" },
+  { id: 367, text: "可持续才长久", tags: ["health", "career", "general"], type: "neutral" },
+  { id: 368, text: "留一点给自己", tags: ["health", "emotion", "general"], type: "positive" },
+  { id: 369, text: "保存实力", tags: ["career", "health", "general"], type: "neutral" },
+  { id: 370, text: "不必时刻在线", tags: ["health", "general"], type: "neutral" },
+
+  { id: 371, text: "关掉通知", tags: ["health", "general"], type: "positive" },
+  { id: 372, text: "远离消耗你的人", tags: ["emotion", "health", "general"], type: "positive" },
+  { id: 373, text: "靠近滋养的关系", tags: ["emotion", "health", "general"], type: "positive" },
+  { id: 374, text: "选择性社交", tags: ["emotion", "general"], type: "neutral" },
+  { id: 375, text: "断舍离关系", tags: ["emotion", "general"], type: "neutral" },
+  { id: 376, text: "高质量独处", tags: ["general", "health"], type: "positive" },
+  { id: 377, text: "少说多做", tags: ["career", "general"], type: "neutral" },
+  { id: 378, text: "少而精", tags: ["general", "career", "study"], type: "neutral" },
+  { id: 379, text: "删繁就简", tags: ["general", "health"], type: "neutral" },
+  { id: 380, text: "聚焦核心", tags: ["career", "study", "general"], type: "positive" },
+
+  // ========== 时间智慧类 ==========
+  { id: 381, text: "一切都有时间表", tags: ["general"], type: "neutral" },
+  { id: 382, text: "你的时区没问题", tags: ["general", "dream"], type: "positive" },
+  { id: 383, text: "不必着急", tags: ["general", "emotion"], type: "neutral" },
+  { id: 384, text: "每个人节奏不同", tags: ["general", "dream"], type: "neutral" },
+  { id: 385, text: "此刻正好", tags: ["general"], type: "positive" },
+  { id: 386, text: "早晚都会到", tags: ["general", "emotion"], type: "neutral" },
+  { id: 387, text: "时候到了自然知道", tags: ["general"], type: "neutral" },
+  { id: 388, text: "急不来", tags: ["general", "emotion"], type: "neutral" },
+  { id: 389, text: "该发生的会发生", tags: ["general"], type: "neutral" },
+  { id: 390, text: "顺应节奏", tags: ["general", "health"], type: "neutral" },
+
+  { id: 391, text: "不早不晚刚刚好", tags: ["general", "emotion"], type: "positive" },
+  { id: 392, text: "耐心等待", tags: ["general", "emotion", "wealth"], type: "neutral" },
+  { id: 393, text: "时间会证明", tags: ["general", "emotion"], type: "neutral" },
+  { id: 394, text: "岁月知道答案", tags: ["general"], type: "neutral" },
+  { id: 395, text: "来日方长", tags: ["general", "emotion"], type: "positive" },
+  { id: 396, text: "未来可期", tags: ["general", "dream"], type: "positive" },
+  { id: 397, text: "好事多磨", tags: ["general", "emotion"], type: "neutral" },
+  { id: 398, text: "值得等待", tags: ["emotion", "general", "wealth"], type: "positive" },
+  { id: 399, text: "守得住寂寞", tags: ["general", "career", "study"], type: "positive" },
+  { id: 400, text: "春天一定会来", tags: ["general", "emotion", "dream"], type: "positive" },
+
+  // ========== 直觉指引类 ==========
+  { id: 401, text: "第一感觉是对的", tags: ["general", "emotion"], type: "positive" },
+  { id: 402, text: "身体的反应很诚实", tags: ["health", "emotion", "general"], type: "positive" },
+  { id: 403, text: "心跳加速说明什么", tags: ["emotion", "general"], type: "neutral" },
+  { id: 404, text: "梦在暗示什么", tags: ["general", "emotion"], type: "neutral" },
+  { id: 405, text: "注意偶然遇见", tags: ["general", "emotion"], type: "neutral" },
+  { id: 406, text: "留意身边信号", tags: ["general"], type: "neutral" },
+  { id: 407, text: "宇宙在帮你", tags: ["general", "dream"], type: "positive" },
+  { id: 408, text: "巧合背后有深意", tags: ["general"], type: "neutral" },
+  { id: 409, text: "一切都是安排", tags: ["general"], type: "neutral" },
+  { id: 410, text: "相信直觉", tags: ["general", "emotion", "wealth"], type: "positive" },
+
+  { id: 411, text: "心里已有答案", tags: ["general", "emotion"], type: "neutral" },
+  { id: 412, text: "听从心声", tags: ["general", "emotion", "dream"], type: "positive" },
+  { id: 413, text: "内在智慧知道", tags: ["general"], type: "neutral" },
+  { id: 414, text: "停止怀疑自己", tags: ["general", "emotion"], type: "positive" },
+  { id: 415, text: "你比想象中更清楚", tags: ["general", "emotion"], type: "positive" },
+  { id: 416, text: "身体从不说谎", tags: ["health", "emotion", "general"], type: "positive" },
+  { id: 417, text: "感受胜过理性", tags: ["emotion", "general"], type: "neutral" },
+  { id: 418, text: "逻辑之外有真相", tags: ["general"], type: "neutral" },
+  { id: 419, text: "不可言说的知道", tags: ["general"], type: "neutral" },
+  { id: 420, text: "直觉从不出错", tags: ["general", "emotion"], type: "positive" },
+
+  // ========== 创造力类 ==========
+  { id: 421, text: "跳出框架", tags: ["career", "dream", "general"], type: "positive" },
+  { id: 422, text: "打破规则", tags: ["dream", "career", "general"], type: "positive" },
+  { id: 423, text: "尝试疯狂的想法", tags: ["dream", "career", "general"], type: "positive" },
+  { id: 424, text: "允许玩耍", tags: ["general", "health", "dream"], type: "positive" },
+  { id: 425, text: "像孩子般想象", tags: ["dream", "general"], type: "positive" },
+  { id: 426, text: "荒诞也无妨", tags: ["dream", "general"], type: "positive" },
+  { id: 427, text: "混乱也是创造", tags: ["dream", "career", "general"], type: "neutral" },
+  { id: 428, text: "错误催生新意", tags: ["career", "dream", "study"], type: "positive" },
+  { id: 429, text: "另辟蹊径", tags: ["career", "dream", "general"], type: "positive" },
+  { id: 430, text: "走没走过的路", tags: ["dream", "career", "general"], type: "positive" },
+
+  { id: 431, text: "组合不同元素", tags: ["career", "study", "general"], type: "positive" },
+  { id: 432, text: "跨界思考", tags: ["career", "study", "dream"], type: "positive" },
+  { id: 433, text: "让灵感自由流淌", tags: ["dream", "general"], type: "positive" },
+  { id: 434, text: "不设限", tags: ["dream", "career", "general"], type: "positive" },
+  { id: 435, text: "一切皆有可能", tags: ["dream", "general"], type: "positive" },
+  { id: 436, text: "重新定义问题", tags: ["career", "study", "general"], type: "positive" },
+  { id: 437, text: "反向思考", tags: ["career", "study", "general"], type: "positive" },
+  { id: 438, text: "从结果倒推", tags: ["career", "study", "general"], type: "positive" },
+  { id: 439, text: "假如没有限制", tags: ["dream", "general"], type: "positive" },
+  { id: 440, text: "如果是你偶像会怎么做", tags: ["dream", "career", "general"], type: "positive" },
+
+  // ========== 感恩祝福类 ==========
+  { id: 441, text: "心存感激", tags: ["general", "emotion"], type: "positive" },
+  { id: 442, text: "珍惜拥有", tags: ["general", "emotion"], type: "positive" },
+  { id: 443, text: "数算恩典", tags: ["general"], type: "positive" },
+  { id: 444, text: "感谢遇见", tags: ["emotion", "general"], type: "positive" },
+  { id: 445, text: "好运会降临", tags: ["general", "wealth"], type: "positive" },
+  { id: 446, text: "祝福会到来", tags: ["general"], type: "positive" },
+  { id: 447, text: "奇迹在路上", tags: ["general", "dream"], type: "positive" },
+  { id: 448, text: "惊喜即将出现", tags: ["general", "emotion"], type: "positive" },
+  { id: 449, text: "生活在眷顾你", tags: ["general"], type: "positive" },
+  { id: 450, text: "天使在身边", tags: ["general"], type: "positive" },
+
+  { id: 451, text: "幸福触手可及", tags: ["general", "emotion"], type: "positive" },
+  { id: 452, text: "好事将近", tags: ["general", "wealth", "career"], type: "positive" },
+  { id: 453, text: "柳暗花明", tags: ["general", "career"], type: "positive" },
+  { id: 454, text: "雨后有彩虹", tags: ["general", "emotion"], type: "positive" },
+  { id: 455, text: "黎明前最暗", tags: ["general", "emotion"], type: "neutral" },
+  { id: 456, text: "转角遇到爱", tags: ["emotion", "general"], type: "positive" },
+  { id: 457, text: "峰回路转", tags: ["career", "general"], type: "positive" },
+  { id: 458, text: "否极泰来", tags: ["general"], type: "positive" },
+  { id: 459, text: "好运正在赶来", tags: ["wealth", "general"], type: "positive" },
+  { id: 460, text: "星星为你闪烁", tags: ["general", "dream"], type: "positive" },
+
+  // ========== 接纳包容类 ==========
+  { id: 461, text: "接纳现状", tags: ["general", "emotion"], type: "neutral" },
+  { id: 462, text: "和平共处", tags: ["emotion", "general"], type: "neutral" },
+  { id: 463, text: "容许差异", tags: ["emotion", "career", "general"], type: "neutral" },
+  { id: 464, text: "不强求一致", tags: ["emotion", "general"], type: "neutral" },
+  { id: 465, text: "尊重选择", tags: ["emotion", "general"], type: "positive" },
+  { id: 466, text: "放下评判", tags: ["emotion", "general"], type: "positive" },
+  { id: 467, text: "不必说服", tags: ["emotion", "general"], type: "neutral" },
+  { id: 468, text: "各有各的路", tags: ["general"], type: "neutral" },
+  { id: 469, text: "各自精彩", tags: ["general", "emotion"], type: "positive" },
+  { id: 470, text: "求同存异", tags: ["emotion", "career", "general"], type: "neutral" },
+
+  { id: 471, text: "温柔以待", tags: ["emotion", "general"], type: "positive" },
+  { id: 472, text: "柔软回应", tags: ["emotion", "general"], type: "positive" },
+  { id: 473, text: "慈悲为怀", tags: ["general", "emotion"], type: "positive" },
+  { id: 474, text: "宽恕释怀", tags: ["emotion", "general"], type: "positive" },
+  { id: 475, text: "放下怨恨", tags: ["emotion", "general"], type: "positive" },
+  { id: 476, text: "原谅是给自己的礼物", tags: ["emotion", "general"], type: "positive" },
+  { id: 477, text: "慈悲自己", tags: ["general", "emotion", "health"], type: "positive" },
+  { id: 478, text: "善待内在小孩", tags: ["emotion", "general"], type: "positive" },
+  { id: 479, text: "拥抱所有的自己", tags: ["emotion", "general"], type: "positive" },
+  { id: 480, text: "整合阴影面", tags: ["emotion", "general"], type: "neutral" },
+
+  // ========== 终极智慧类（精简版）==========
+  { id: 481, text: "你已是完整", tags: ["general", "emotion"], type: "positive" },
+  { id: 482, text: "当下最珍贵", tags: ["general"], type: "positive" },
+  { id: 483, text: "活着就是答案", tags: ["general"], type: "positive" },
+  { id: 484, text: "存在就是奇迹", tags: ["general"], type: "positive" },
+  { id: 485, text: "你就是答案", tags: ["general"], type: "positive" },
+  { id: 486, text: "存在即意义", tags: ["general", "dream"], type: "positive" },
+  { id: 487, text: "一期一会", tags: ["emotion", "general"], type: "positive" },
+  { id: 488, text: "生生不息", tags: ["general", "health"], type: "positive" },
+  { id: 489, text: "珍惜此刻", tags: ["general", "emotion"], type: "positive" },
+  { id: 490, text: "回归简单", tags: ["general", "health"], type: "neutral" },
+
+  // ========== 原版精选补充 (简洁有力) ==========
+  { id: 491, text: "那一定很棒", tags: ["general", "emotion", "dream"], type: "positive" },
+  { id: 492, text: "似乎没问题", tags: ["general", "career"], type: "positive" },
+  { id: 493, text: "看开一点", tags: ["emotion", "general", "health"], type: "neutral" },
+  { id: 494, text: "随它去吧", tags: ["general", "emotion"], type: "neutral" },
+  { id: 495, text: "管它呢", tags: ["general"], type: "neutral" },
+  { id: 496, text: "别浪费时间了", tags: ["career", "general"], type: "cautious" },
+  { id: 497, text: "把它记下来", tags: ["study", "general"], type: "positive" },
+  { id: 498, text: "学习并享受它", tags: ["study", "general", "dream"], type: "positive" },
+  { id: 499, text: "防备意外发生", tags: ["general", "wealth", "career"], type: "cautious" },
+  { id: 500, text: "先完成其他事", tags: ["career", "study", "general"], type: "neutral" },
+  
+  { id: 501, text: "形势尚不明朗", tags: ["career", "wealth", "general"], type: "neutral" },
+  { id: 502, text: "更细心去倾听", tags: ["emotion", "general"], type: "positive" },
+  { id: 503, text: "且行且思", tags: ["career", "study", "general"], type: "neutral" },
+  { id: 504, text: "快刀斩乱麻", tags: ["career", "emotion", "general"], type: "positive" },
+  { id: 505, text: "意义非凡", tags: ["general", "dream"], type: "positive" },
+  { id: 506, text: "情况很快就会有变化", tags: ["general", "career", "emotion"], type: "neutral" },
+  { id: 507, text: "过段时间就不那么重要了", tags: ["emotion", "general"], type: "neutral" },
+  { id: 508, text: "那可能非同寻常", tags: ["general", "dream", "career"], type: "positive" },
+  { id: 509, text: "相关问题可能会浮出水面", tags: ["career", "general"], type: "cautious" },
+  { id: 510, text: "答案可能会以另一种形式出现", tags: ["general"], type: "neutral" },
+
+  // ========== 哲理治愈类 (新增深度内容) ==========
+  { id: 511, text: "山高自有客行路", tags: ["dream", "career", "general"], type: "positive" },
+  { id: 512, text: "水深自有渡船人", tags: ["general", "emotion"], type: "positive" },
+  { id: 513, text: "心中有光,何惧黑暗", tags: ["emotion", "dream", "general"], type: "positive" },
+  { id: 514, text: "种一棵树最好的时间是十年前", tags: ["dream", "career", "general"], type: "positive" },
+  { id: 515, text: "其次是现在", tags: ["dream", "career", "general"], type: "positive" },
+  { id: 516, text: "人生没有白走的路", tags: ["general", "career", "dream"], type: "positive" },
+  { id: 517, text: "每一步都算数", tags: ["general", "career", "study"], type: "positive" },
+  { id: 518, text: "不必追赶谁", tags: ["general", "emotion"], type: "positive" },
+  { id: 519, text: "太阳和你都有自己的时区", tags: ["general", "dream"], type: "positive" },
+  { id: 520, text: "慢一点也没关系", tags: ["general", "health"], type: "positive" },
+
+  { id: 521, text: "世界会为你让路", tags: ["dream", "career", "general"], type: "positive" },
+  { id: 522, text: "所有的失去都会以另一种方式归来", tags: ["emotion", "general"], type: "positive" },
+  { id: 523, text: "最好的正在路上", tags: ["general", "emotion", "dream"], type: "positive" },
+  { id: 524, text: "你的温柔会被看见", tags: ["emotion", "general"], type: "positive" },
+  { id: 525, text: "你的善良会被回应", tags: ["emotion", "general"], type: "positive" },
+  { id: 526, text: "悲伤会过去,爱会留下", tags: ["emotion", "general"], type: "positive" },
+  { id: 527, text: "伤口会长出翅膀", tags: ["emotion", "general", "dream"], type: "positive" },
+  { id: 528, text: "痛苦会变成力量", tags: ["emotion", "general", "career"], type: "positive" },
+  { id: 529, text: "你比想象中更勇敢", tags: ["emotion", "dream", "general"], type: "positive" },
+  { id: 530, text: "你比想象中更坚强", tags: ["emotion", "career", "general"], type: "positive" },
+
+  { id: 531, text: "风会记得花的香", tags: ["general", "emotion"], type: "positive" },
+  { id: 532, text: "时间会记得你的好", tags: ["general", "emotion"], type: "positive" },
+  { id: 533, text: "月亮不会奔你而来", tags: ["general", "emotion"], type: "neutral" },
+  { id: 534, text: "但我会", tags: ["emotion", "general"], type: "positive" },
+  { id: 535, text: "一切都是最好的安排", tags: ["general"], type: "positive" },
+  { id: 536, text: "你在对的时间遇见对的人", tags: ["emotion", "general"], type: "positive" },
+  { id: 537, text: "所有的相遇都是久别重逢", tags: ["emotion", "general"], type: "positive" },
+  { id: 538, text: "缘起缘灭,皆有定数", tags: ["emotion", "general"], type: "neutral" },
+  { id: 539, text: "得之我幸,失之我命", tags: ["general", "emotion"], type: "neutral" },
+  { id: 540, text: "尽人事,听天命", tags: ["general", "career", "wealth"], type: "neutral" },
+
+  { id: 541, text: "心安即是归处", tags: ["general", "emotion"], type: "positive" },
+  { id: 542, text: "简单即是丰盛", tags: ["general", "health"], type: "positive" },
+  { id: 543, text: "平凡即是圆满", tags: ["general"], type: "positive" },
+  { id: 544, text: "宁静即是力量", tags: ["general", "health"], type: "positive" },
+  { id: 545, text: "温柔即是勇气", tags: ["emotion", "general"], type: "positive" },
+  { id: 546, text: "等待即是修行", tags: ["general", "emotion"], type: "neutral" },
+  { id: 547, text: "放下即是自由", tags: ["emotion", "general"], type: "neutral" },
+  { id: 548, text: "接纳即是疗愈", tags: ["emotion", "general", "health"], type: "positive" },
+  { id: 549, text: "流泪即是勇敢", tags: ["emotion", "general"], type: "positive" },
+  { id: 550, text: "认输也是一种赢", tags: ["general", "emotion"], type: "neutral" },
+
+  { id: 551, text: "山河会相逢", tags: ["emotion", "general"], type: "positive" },
+  { id: 552, text: "日月自有光", tags: ["general"], type: "positive" },
+  { id: 553, text: "天地自宽阔", tags: ["general", "dream"], type: "positive" },
+  { id: 554, text: "人间自有真情在", tags: ["emotion", "general"], type: "positive" },
+  { id: 555, text: "世间安得双全法", tags: ["general", "emotion"], type: "neutral" },
+  { id: 556, text: "不负如来不负卿", tags: ["general", "emotion"], type: "neutral" },
+  { id: 557, text: "愿你历尽千帆,归来仍是少年", tags: ["general", "dream"], type: "positive" },
+  { id: 558, text: "愿你被世界温柔相待", tags: ["general", "emotion"], type: "positive" },
+  { id: 559, text: "愿你所得皆所愿", tags: ["general", "dream"], type: "positive" },
+  { id: 560, text: "愿你眼里有光,心中有爱", tags: ["general", "emotion"], type: "positive" },
+
+  // ========== 现代治愈类 ==========
+  { id: 561, text: "没有人会一直坚强", tags: ["emotion", "general", "health"], type: "positive" },
+  { id: 562, text: "崩溃也是需要练习的", tags: ["emotion", "general"], type: "positive" },
+  { id: 563, text: "你可以不那么努力", tags: ["general", "health"], type: "positive" },
+  { id: 564, text: "普通也很好", tags: ["general", "emotion"], type: "positive" },
+  { id: 565, text: "躺平一会儿", tags: ["health", "general"], type: "positive" },
+  { id: 566, text: "摆烂不可耻", tags: ["general", "emotion"], type: "neutral" },
+  { id: 567, text: "不想上班就别上", tags: ["career", "health"], type: "neutral" },
+  { id: 568, text: "辞职不是失败", tags: ["career", "general"], type: "neutral" },
+  { id: 569, text: "gap year也不错", tags: ["general", "health"], type: "neutral" },
+  { id: 570, text: "做自己就好", tags: ["general", "emotion"], type: "positive" }
+]
+
+/**
+ * 根据分类获取答案
+ */
+export function getAnswersByCategory(category: string): string[] {
+  return fullAnswerPool
+    .filter(answer => answer.tags.includes(category))
+    .map(answer => answer.text)
+}
+
+/**
+ * 加权随机获取答案
+ */
+export function getWeightedAnswer(category: string): string {
+  const answers = getAnswersByCategory(category)
+  if (answers.length === 0) {
+    return fullAnswerPool[Math.floor(Math.random() * fullAnswerPool.length)].text
+  }
+  return answers[Math.floor(Math.random() * answers.length)]
+}
+
+/**
+ * 每日签文
+ */
+export const dailyFortunes: string[] = [
+  '今日宜静心,诸事渐明',
+  '顺其自然,水到渠成',
+  '内心笃定,万事可期',
+  '今日宜思考,勿急于行动',
+  '相信直觉,答案就在心中',
+  '今日宜放下执念,海阔天空',
+  '大道至简,返璞归真',
+  '心有所向,日复一日',
+  '凡事皆有裂痕,那是光进来的地方',
+  '此刻即是答案,当下即是永恒'
+]
+
+/**
+ * 禅语库
+ */
+export const zenQuotes: string[] = [
+  '万物皆有裂痕,那是光照进来的地方',
+  '此刻的犹豫,正在为未来铺路',
+  '答案从不迟到,只是时机未至',
+  '内心的声音,最为真实',
+  '静下心来,答案自会显现',
+  '每一次提问,都是在靠近真相',
+  '不确定性中,藏着无限可能',
+  '听见内心,便已找到答案'
+]
+
+/**
+ * 获取每日签文(基于日期)
+ */
+export function getDailyFortune(): string {
+  const today = new Date()
+  const seed = today.getFullYear() + today.getMonth() + today.getDate()
+  const index = seed % dailyFortunes.length
+  return dailyFortunes[index]
+}
+
+/**
+ * 简化的农历日期(仅供展示)
+ */
+export function getLunarDate(): string {
+  const lunarMonths = ['正月', '二月', '三月', '四月', '五月', '六月', 
+                       '七月', '八月', '九月', '十月', '冬月', '腊月']
+  const lunarDays = ['初一', '初二', '初三', '初四', '初五', '初六', '初七', '初八', '初九', '初十',
+                     '十一', '十二', '十三', '十四', '十五', '十六', '十七', '十八', '十九', '二十',
+                     '廿一', '廿二', '廿三', '廿四', '廿五', '廿六', '廿七', '廿八', '廿九', '三十']
+  
+  const today = new Date()
+  const monthIndex = today.getMonth()
+  const dayIndex = Math.min(today.getDate() - 1, 29)
+  
+  return `农历${lunarMonths[monthIndex]}${lunarDays[dayIndex]}`
+}

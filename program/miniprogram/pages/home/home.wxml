@@ -88,10 +88,6 @@
           <text class="icon">←</text>
           <text>返回</text>
         </view>
-        <view class="card-share-btn" bindtap="onShareTap">
-          <text>分享</text>
-          <text class="icon">→</text>
-        </view>
       </view>
 
       <!-- 装饰星星 -->
@@ -158,7 +154,16 @@
     <view class="poster-content">
       <view class="poster-header">
         <text class="poster-title">长按保存图片</text>
-        <text class="poster-close" bindtap="onClosePosterModal">✕</text>
+        <view class="poster-header-right">
+          <view 
+            class="poster-refresh-btn {{isRefreshingBg ? 'refreshing' : ''}}" 
+            bindtap="onRefreshBackground"
+          >
+            <text class="refresh-icon">🔄</text>
+            <text class="refresh-text">换背景</text>
+          </view>
+          <text class="poster-close" bindtap="onClosePosterModal">✕</text>
+        </view>
       </view>
       
       <image 
@@ -169,11 +174,14 @@
       />
       
       <view class="poster-actions">
-        <button class="poster-btn poster-btn-secondary" bindtap="onClosePosterModal">
-          关闭
-        </button>
-        <button class="poster-btn poster-btn-primary" bindtap="savePoster">
+        <button class="poster-btn poster-btn-save" bindtap="savePoster">
           保存到相册
+        </button>
+        <button 
+          class="poster-btn poster-btn-share" 
+          open-type="share"
+        >
+          分享
         </button>
       </view>
     </view>

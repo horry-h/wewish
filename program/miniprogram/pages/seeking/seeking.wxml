@@ -1,0 +1,42 @@
+<!--pages/seeking/seeking.wxml-->
+<view class="seeking-container">
+  <!-- 书页翻动区域 -->
+  <view class="book-area">
+    <view class="page-stack">
+      <view 
+        class="book-page {{currentPage === index ? 'flipping' : ''}}"
+        wx:for="{{visiblePages}}"
+        wx:key="index"
+        style="z-index: {{10 - index}};"
+      >
+        <view class="page-content"></view>
+      </view>
+    </view>
+
+    <!-- 粒子Canvas -->
+    <canvas 
+      class="particle-canvas" 
+      canvas-id="particleCanvas" 
+      type="2d" 
+      id="particleCanvas"
+    ></canvas>
+  </view>
+
+  <!-- 进度条 -->
+  <view class="progress-section">
+    <view class="progress-bar">
+      <view class="progress-fill" style="width: {{progress}}%;"></view>
+      <view class="progress-shimmer"></view>
+    </view>
+  </view>
+
+  <!-- 禅语提示 -->
+  <view class="zen-quote {{quoteVisible ? 'visible' : ''}}">
+    {{currentZenQuote}}
+  </view>
+
+  <!-- 底部提示 -->
+  <view class="hint-text {{canRelease ? 'pulse' : ''}}">
+    {{canRelease ? '松开获取答案' : '请保持长按'}}
+  </view>
+</view>

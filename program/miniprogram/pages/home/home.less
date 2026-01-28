@@ -1,0 +1,221 @@
+/* pages/home/home.wxss */
+.home-container {
+  min-height: 100vh;
+  padding: 0 60rpx 80rpx;
+  display: flex;
+  flex-direction: column;
+}
+
+.status-bar {
+  width: 100%;
+}
+
+/* 头部标题 */
+.header {
+  text-align: center;
+  padding: 60rpx 0 40rpx;
+}
+
+.title {
+  font-size: 56rpx;
+  font-weight: 600;
+  letter-spacing: 4rpx;
+  margin-bottom: 16rpx;
+}
+
+.subtitle {
+  font-size: 28rpx;
+  color: rgba(255, 255, 255, 0.6);
+  font-weight: 300;
+  letter-spacing: 2rpx;
+}
+
+/* 每日一签卡片 */
+.daily-card {
+  padding: 32rpx;
+  margin-bottom: 60rpx;
+  position: relative;
+  overflow: hidden;
+  animation: fadeIn 0.6s ease-out;
+}
+
+.daily-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+  animation: shimmer 3s infinite;
+}
+
+.lantern {
+  font-size: 48rpx;
+  margin-bottom: 16rpx;
+  display: inline-block;
+  animation: sway 3s ease-in-out infinite;
+}
+
+@keyframes sway {
+  0%, 100% { transform: rotate(-5deg); }
+  50% { transform: rotate(5deg); }
+}
+
+.daily-text {
+  font-size: 32rpx;
+  color: #fff;
+  line-height: 1.6;
+  margin-bottom: 12rpx;
+}
+
+.daily-date {
+  font-size: 24rpx;
+  color: rgba(255, 255, 255, 0.5);
+  text-align: right;
+}
+
+/* 问题分类区 */
+.category-section {
+  margin-bottom: 80rpx;
+}
+
+.category-hint {
+  font-size: 28rpx;
+  color: rgba(255, 255, 255, 0.5);
+  text-align: center;
+  margin-bottom: 32rpx;
+  letter-spacing: 2rpx;
+}
+
+.category-list {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 24rpx;
+}
+
+.category-item {
+  flex: 0 0 calc((100% - 48rpx) / 3);
+  aspect-ratio: 1;
+  background: rgba(255, 255, 255, 0.05);
+  border: 2rpx solid rgba(255, 255, 255, 0.2);
+  border-radius: 20rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10rpx);
+}
+
+.category-item.active {
+  background: linear-gradient(135deg, #d4a574 0%, #f4d5a6 100%);
+  border-color: #ffd89b;
+  transform: scale(1.05);
+  box-shadow: 0 8rpx 32rpx rgba(212, 165, 116, 0.4);
+}
+
+.category-icon {
+  font-size: 44rpx;
+  margin-bottom: 8rpx;
+}
+
+.category-name {
+  font-size: 26rpx;
+  color: #fff;
+  font-weight: 500;
+}
+
+/* 核心交互按钮 */
+.action-section {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 40rpx 0;
+}
+
+.main-button {
+  width: 480rpx;
+  height: 480rpx;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #d4a574 0%, #f4d5a6 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  box-shadow: 
+    0 8rpx 32rpx rgba(212, 165, 116, 0.3),
+    0 16rpx 64rpx rgba(212, 165, 116, 0.2),
+    inset 0 -8rpx 16rpx rgba(0, 0, 0, 0.1);
+  transition: transform 0.1s ease;
+}
+
+.main-button.breathing {
+  animation: breathe 2s ease-in-out infinite;
+}
+
+.main-button:active {
+  transform: scale(0.9);
+}
+
+.button-content {
+  text-align: center;
+  color: #0a0e27;
+  position: relative;
+  z-index: 2;
+}
+
+.crystal-icon {
+  font-size: 96rpx;
+  margin-bottom: 16rpx;
+  filter: drop-shadow(0 4rpx 8rpx rgba(0, 0, 0, 0.2));
+}
+
+.button-text-top {
+  font-size: 36rpx;
+  font-weight: 600;
+  margin-bottom: 8rpx;
+  letter-spacing: 2rpx;
+}
+
+.button-text-bottom {
+  font-size: 32rpx;
+  opacity: 0.8;
+  letter-spacing: 2rpx;
+}
+
+.ripple {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  border: 4rpx solid rgba(255, 255, 255, 0.6);
+  animation: rippleEffect 2s ease-out infinite;
+}
+
+@keyframes rippleEffect {
+  0% {
+    width: 100%;
+    height: 100%;
+    opacity: 1;
+  }
+  100% {
+    width: 140%;
+    height: 140%;
+    opacity: 0;
+  }
+}
+
+/* 底部文案 */
+.footer-text {
+  text-align: center;
+  font-size: 28rpx;
+  color: rgba(255, 255, 255, 0.4);
+  letter-spacing: 2rpx;
+  padding: 40rpx 0;
+}

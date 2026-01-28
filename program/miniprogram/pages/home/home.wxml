@@ -1,0 +1,55 @@
+<!--pages/home/home.wxml-->
+<view class="home-container">
+  <!-- 状态栏占位 -->
+  <view class="status-bar" style="height: {{statusBarHeight}}px;"></view>
+
+  <!-- 顶部标题区 -->
+  <view class="header">
+    <view class="title gradient-text">心之解惑</view>
+    <view class="subtitle">Answer Book</view>
+  </view>
+
+  <!-- 每日一签卡片 -->
+  <view class="daily-card card" bindtap="onDailyCardTap">
+    <view class="lantern">🏮</view>
+    <view class="daily-text">{{dailyFortune}}</view>
+    <view class="daily-date">{{lunarDate}}</view>
+  </view>
+
+  <!-- 问题分类区 -->
+  <view class="category-section">
+    <view class="category-hint">请选择问题类型</view>
+    <view class="category-list">
+      <view 
+        class="category-item {{selectedCategory === item.key ? 'active' : ''}}"
+        wx:for="{{categories}}"
+        wx:key="key"
+        bindtap="onCategoryTap"
+        data-key="{{item.key}}"
+      >
+        <view class="category-icon">{{item.icon}}</view>
+        <view class="category-name">{{item.name}}</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 核心交互按钮 -->
+  <view class="action-section">
+    <view 
+      class="main-button {{isBreathing ? 'breathing' : ''}}"
+      bindtouchstart="onTouchStart"
+      bindtouchend="onTouchEnd"
+      bindtouchcancel="onTouchCancel"
+    >
+      <view class="button-content">
+        <view class="crystal-icon">🔮</view>
+        <view class="button-text-top">闭目默念</view>
+        <view class="button-text-bottom">长按寻声</view>
+      </view>
+      <view class="ripple"></view>
+    </view>
+  </view>
+
+  <!-- 底部文案 -->
+  <view class="footer-text">内心已有答案,只需聆听</view>
+</view>

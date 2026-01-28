@@ -144,4 +144,38 @@
       <view class="card-timestamp">记录于 {{resultTimestamp}}</view>
     </view>
   </view>
+
+  <!-- 离屏Canvas（用于生成海报） -->
+  <canvas 
+    type="2d" 
+    id="posterCanvas" 
+    style="position: fixed; left: -9999px; top: -9999px; width: 750px; height: 1000px;"
+  ></canvas>
+
+  <!-- 海报预览弹窗 -->
+  <view class="poster-modal" wx:if="{{showPosterModal}}">
+    <view class="poster-mask" bindtap="onClosePosterModal"></view>
+    <view class="poster-content">
+      <view class="poster-header">
+        <text class="poster-title">长按保存图片</text>
+        <text class="poster-close" bindtap="onClosePosterModal">✕</text>
+      </view>
+      
+      <image 
+        class="poster-image" 
+        src="{{posterImagePath}}" 
+        mode="widthFix"
+        show-menu-by-longpress
+      />
+      
+      <view class="poster-actions">
+        <button class="poster-btn poster-btn-secondary" bindtap="onClosePosterModal">
+          关闭
+        </button>
+        <button class="poster-btn poster-btn-primary" bindtap="savePoster">
+          保存到相册
+        </button>
+      </view>
+    </view>
+  </view>
 </view>

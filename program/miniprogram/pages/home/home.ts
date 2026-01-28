@@ -30,7 +30,10 @@ Page({
     analysisExpanded: false,
     displayedAnalysis: '',
     fullAnalysis: '',
-    isTyping: false
+    isTyping: false,
+    // 卡片相关
+    showPosterModal: false,
+    posterImagePath: ''
   },
 
   // 定时器
@@ -378,7 +381,7 @@ Page({
 
 # Style Requirements / 风格约束
 - **文风**：治愈、文艺、极简、具有呼吸感。参考村上春树的克制或三毛的感性。
-- **字数**：严格控制在 150 - 250 字之间，给用户留白思考。
+- **字数**：严格控制在 50 - 200 字之间，给用户留白思考。
 - **禁忌**：严禁使用"作为AI"、"根据我的分析"、"建议你"等机械化词汇。严禁说教，要用引导。`
 
     // 拼接分类专属增强指令
@@ -429,7 +432,7 @@ ${enhancement}
     userPrompt += `
 
 请根据上述信息，以"书灵"的身份生成一段解读。记住：
-1. 字数严格控制在150-250字
+1. 字数严格控制在50-200字
 2. 使用隐喻和诗化语言，不要直白说教
 3. 给用户心理上的温柔拥抱和治愈感
 4. 绝对不要使用"作为AI"等机械化词汇`
@@ -499,9 +502,9 @@ ${enhancement}
   // 分享
   onShareTap() {
     wx.vibrateShort({ type: 'medium' })
-    wx.showToast({
-      title: '分享功能开发中',
-      icon: 'none'
+    wx.showShareMenu({
+      withShareTicket: true,
+      menus: ['shareAppMessage', 'shareTimeline']
     })
   },
 
@@ -514,10 +517,256 @@ ${enhancement}
   // 生成卡片
   onGenerateCard() {
     wx.vibrateShort({ type: 'medium' })
-    wx.showToast({
-      title: '卡片生成功能开发中',
-      icon: 'none'
+    this.drawPoster()
+  },
+
+  // 绘制海报
+  async drawPoster() {
+    wx.showLoading({
+      title: '书灵正在绘图...',
+      mask: true
     })
+
+    try {
+      // 创建离屏 Canvas
+      const query = wx.createSelectorQuery()
+      query.select('#posterCanvas')
+        .fields({ node: true, size: true })
+        .exec(async (res) => {
+          if (!res || !res[0]) {
+            wx.hideLoading()
+            wx.showToast({ title: '获取Canvas失败', icon: 'none' })
+            return
+          }
+
+          const canvas = res[0].node
+          const ctx = canvas.getContext('2d')
+          const dpr = wx.getSystemInfoSync().pixelRatio
+
+          // 设置画布尺寸 (750 * 1000)
+          canvas.width = 750 * dpr
+          canvas.height = 1000 * dpr
+          ctx.scale(dpr, dpr)
+
+          // 绘制背景渐变
+          const gradient = ctx.createLinearGradient(0, 0, 0, 1000)
+          gradient.addColorStop(0, '#0a1929')
+          gradient.addColorStop(0.5, '#1a2f4a')
+          gradient.addColorStop(1, '#0a1929')
+          ctx.fillStyle = gradient
+          ctx.fillRect(0, 0, 750, 1000)
+
+          // 绘制星光效果
+          this.drawStars(ctx)
+
+          // 获取分类信息
+          const category = this.data.categories.find(
+            cat => cat.key === (this.data.selectedCategory || 'general')
+          ) || this.data.categories[6]
+
+          // 顶部：分类图标和名称
+          ctx.font = '48px sans-serif'
+          ctx.textAlign = 'center'
+          ctx.fillText(category.icon, 375, 100)
+
+          ctx.font = 'bold 32px sans-serif'
+          ctx.fillStyle = '#ffffff'
+          ctx.fillText(category.name, 375, 160)
+
+          // 中间：核心答案（大字体 + 倒影效果）
+          ctx.font = 'bold 64px sans-serif'
+          ctx.fillStyle = '#ffffff'
+          ctx.textAlign = 'center'
+          ctx.shadowColor = 'rgba(255, 255, 255, 0.5)'
+          ctx.shadowBlur = 30
+          ctx.shadowOffsetX = 0
+          ctx.shadowOffsetY = 0
+          ctx.fillText(`「 ${this.data.resultAnswer} 」`, 375, 280)
+          
+          // 清除阴影
+          ctx.shadowColor = 'transparent'
+          ctx.shadowBlur = 0
+
+          // 绘制装饰线
+          ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)'
+          ctx.lineWidth = 1
+          ctx.beginPath()
+          ctx.moveTo(150, 330)
+          ctx.lineTo(600, 330)
+          ctx.stroke()
+
+          // 正文：AI解读（自动换行）
+          const analysis = this.data.fullAnalysis || '红了樱桃、绿了芭蕉，时间会告诉我们一切'
+          ctx.font = '24px sans-serif'
+          ctx.fillStyle = 'rgba(255, 255, 255, 0.9)'
+          ctx.textAlign = 'left'
+          this.drawMultilineText(ctx, analysis, 80, 380, 590, 30)
+
+          // 底部：时间戳
+          ctx.font = '20px sans-serif'
+          ctx.fillStyle = 'rgba(255, 255, 255, 0.6)'
+          ctx.textAlign = 'center'
+          ctx.fillText(`记录于 ${this.data.resultTimestamp}`, 375, 880)
+
+          // 品牌水印
+          ctx.font = '18px sans-serif'
+          ctx.fillStyle = 'rgba(255, 255, 255, 0.4)'
+          ctx.fillText('—— 来自《心之解惑》书灵', 375, 920)
+
+          // 小程序码占位符（圆形）
+          ctx.fillStyle = 'rgba(255, 255, 255, 0.1)'
+          ctx.beginPath()
+          ctx.arc(120, 950, 40, 0, 2 * Math.PI)
+          ctx.fill()
+
+          // 提示文字
+          ctx.font = '16px sans-serif'
+          ctx.fillStyle = 'rgba(255, 255, 255, 0.5)'
+          ctx.textAlign = 'left'
+          ctx.fillText('扫码体验', 180, 960)
+
+          // 导出图片
+          setTimeout(() => {
+            wx.canvasToTempFilePath({
+              canvas: canvas,
+              success: (res) => {
+                wx.hideLoading()
+                this.setData({
+                  posterImagePath: res.tempFilePath,
+                  showPosterModal: true
+                })
+              },
+              fail: (err) => {
+                wx.hideLoading()
+                console.error('导出图片失败:', err)
+                wx.showToast({ title: '生成失败', icon: 'none' })
+              }
+            })
+          }, 300)
+        })
+    } catch (error) {
+      wx.hideLoading()
+      console.error('绘制海报失败:', error)
+      wx.showToast({ title: '生成失败', icon: 'none' })
+    }
+  },
+
+  // 绘制星光效果
+  drawStars(ctx: any) {
+    const stars = [
+      { x: 100, y: 150, r: 2 },
+      { x: 650, y: 200, r: 1.5 },
+      { x: 200, y: 400, r: 1 },
+      { x: 600, y: 450, r: 2 },
+      { x: 150, y: 600, r: 1.5 },
+      { x: 680, y: 650, r: 1 },
+      { x: 300, y: 800, r: 2 },
+      { x: 550, y: 850, r: 1.5 }
+    ]
+
+    stars.forEach(star => {
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.6)'
+      ctx.beginPath()
+      ctx.arc(star.x, star.y, star.r, 0, 2 * Math.PI)
+      ctx.fill()
+    })
+  },
+
+  // 多行文本绘制（自动换行）
+  drawMultilineText(ctx: any, text: string, x: number, y: number, maxWidth: number, lineHeight: number) {
+    const lines: string[] = []
+    let currentLine = ''
+
+    for (let i = 0; i < text.length; i++) {
+      const char = text[i]
+      const testLine = currentLine + char
+      const metrics = ctx.measureText(testLine)
+
+      if (metrics.width > maxWidth && currentLine) {
+        lines.push(currentLine)
+        currentLine = char
+      } else {
+        currentLine = testLine
+      }
+    }
+    if (currentLine) {
+      lines.push(currentLine)
+    }
+
+    // 绘制文本行
+    lines.forEach((line, index) => {
+      ctx.fillText(line, x, y + index * lineHeight)
+    })
+  },
+
+  // 关闭海报弹窗
+  onClosePosterModal() {
+    this.setData({
+      showPosterModal: false
+    })
+  },
+
+  // 保存海报到相册
+  async savePoster() {
+    try {
+      // 先检查授权状态
+      const authResult = await wx.getSetting()
+      
+      if (authResult.authSetting['scope.writePhotosAlbum'] === false) {
+        // 用户之前拒绝过，引导打开设置
+        wx.showModal({
+          title: '需要相册权限',
+          content: '请允许访问您的相册，以便保存图片',
+          confirmText: '去设置',
+          success: (res) => {
+            if (res.confirm) {
+              wx.openSetting()
+            }
+          }
+        })
+        return
+      }
+
+      // 保存图片
+      wx.saveImageToPhotosAlbum({
+        filePath: this.data.posterImagePath,
+        success: () => {
+          wx.showToast({
+            title: '已保存到相册',
+            icon: 'success'
+          })
+          this.setData({
+            showPosterModal: false
+          })
+        },
+        fail: (err) => {
+          if (err.errMsg.includes('auth deny')) {
+            // 用户拒绝授权
+            wx.showModal({
+              title: '需要相册权限',
+              content: '请允许访问您的相册，以便保存图片',
+              confirmText: '去设置',
+              success: (res) => {
+                if (res.confirm) {
+                  wx.openSetting()
+                }
+              }
+            })
+          } else {
+            wx.showToast({
+              title: '保存失败',
+              icon: 'none'
+            })
+          }
+        }
+      })
+    } catch (error) {
+      console.error('保存图片失败:', error)
+      wx.showToast({
+        title: '保存失败',
+        icon: 'none'
+      })
+    }
   },
 
   onShow() {
@@ -525,6 +774,24 @@ ${enhancement}
     this.setData({
       isBreathing: true
     })
+  },
+
+  // 分享给好友
+  onShareAppMessage() {
+    return {
+      title: `我抽到了答案：「${this.data.resultAnswer}」，你也来听听书灵的解读`,
+      path: '/pages/home/home',
+      imageUrl: this.data.posterImagePath || ''
+    }
+  },
+
+  // 分享到朋友圈
+  onShareTimeline() {
+    return {
+      title: `书灵说：「${this.data.resultAnswer}」`,
+      query: '',
+      imageUrl: this.data.posterImagePath || ''
+    }
   },
 
   onUnload() {

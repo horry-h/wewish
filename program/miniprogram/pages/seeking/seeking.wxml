@@ -1,5 +1,10 @@
 <!--pages/seeking/seeking.wxml-->
-<view class="seeking-container">
+<view 
+  class="seeking-container"
+  bindtouchstart="onTouchStart"
+  bindtouchend="onTouchEnd"
+  bindtouchcancel="onTouchCancel"
+>
   <!-- 书页翻动区域 -->
   <view class="book-area">
     <view class="page-stack">

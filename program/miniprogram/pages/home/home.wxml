@@ -3,48 +3,74 @@
   <!-- 状态栏占位 -->
   <view class="status-bar" style="height: {{statusBarHeight}}px;"></view>
 
-  <!-- 顶部标题区 -->
-  <view class="header">
-    <view class="title gradient-text">心之解惑</view>
-    <view class="subtitle">Answer Book</view>
+  <!-- 顶部区域 -->
+  <view class="top-area">
+    <!-- 左侧标题 -->
+    <view class="header">
+      <view class="title gradient-text">心之解惑</view>
+      <view class="subtitle">Answer Book</view>
+    </view>
+
+    <!-- 右侧每日一签按钮 -->
+    <view class="daily-btn" bindtap="onDailyCardTap">
+      <view class="lantern-icon">🏮</view>
+    </view>
   </view>
 
-  <!-- 每日一签卡片 -->
-  <view class="daily-card card" bindtap="onDailyCardTap">
-    <view class="lantern">🏮</view>
-    <view class="daily-text">{{dailyFortune}}</view>
-    <view class="daily-date">{{lunarDate}}</view>
-  </view>
-
-  <!-- 问题分类区 -->
+  <!-- 问题分类区(紧凑横向) -->
   <view class="category-section">
     <view class="category-hint">请选择问题类型</view>
-    <view class="category-list">
+    <view class="category-list-compact">
       <view 
-        class="category-item {{selectedCategory === item.key ? 'active' : ''}}"
+        class="category-chip {{selectedCategory === item.key ? 'active' : ''}}"
         wx:for="{{categories}}"
         wx:key="key"
         bindtap="onCategoryTap"
         data-key="{{item.key}}"
       >
-        <view class="category-icon">{{item.icon}}</view>
-        <view class="category-name">{{item.name}}</view>
+        <text class="chip-icon">{{item.icon}}</text>
+        <text class="chip-name">{{item.name}}</text>
       </view>
     </view>
+  </view>
+
+  <!-- 心声输入区 -->
+  <view class="input-section">
+    <textarea 
+      class="heart-input"
+      placeholder="说出你的心声..."
+      placeholder-class="input-placeholder"
+      maxlength="100"
+      value="{{userThought}}"
+      bindinput="onInputChange"
+      auto-height
+    />
+    <view class="input-counter">{{userThought.length}}/100</view>
   </view>
 
   <!-- 核心交互按钮 -->
   <view class="action-section">
     <view 
-      class="main-button {{isBreathing ? 'breathing' : ''}}"
+      class="main-button {{isBreathing ? 'breathing' : ''}} {{isPressing ? 'pressing' : ''}}"
       bindtouchstart="onTouchStart"
       bindtouchend="onTouchEnd"
       bindtouchcancel="onTouchCancel"
     >
+      <!-- 翻书效果层 -->
+      <view class="book-pages" wx:if="{{isPressing}}">
+        <view 
+          class="book-page page-{{index}} {{currentPage === index ? 'active' : ''}}"
+          wx:for="{{visiblePages}}"
+          wx:key="index"
+        ></view>
+      </view>
+
+      <!-- 按钮内容 -->
       <view class="button-content">
         <view class="crystal-icon">🔮</view>
         <view class="button-text-top">闭目默念</view>
-        <view class="button-text-bottom">长按寻声</view>
+        <view class="button-text-bottom" wx:if="{{!isPressing}}">长按寻声</view>
+        <view class="zen-quote" wx:if="{{isPressing}}">{{currentZenQuote}}</view>
       </view>
       <view class="ripple"></view>
     </view>
@@ -52,4 +78,70 @@
 
   <!-- 底部文案 -->
   <view class="footer-text">内心已有答案,只需聆听</view>
+
+  <!-- 结果卡片弹窗 -->
+  <view class="result-modal" wx:if="{{showResultCard}}">
+    <view class="result-card">
+      <!-- 顶部操作栏 -->
+      <view class="card-top-bar">
+        <view class="card-back-btn" bindtap="onCloseResultCard">
+          <text class="icon">←</text>
+          <text>返回</text>
+        </view>
+        <view class="card-share-btn" bindtap="onShareTap">
+          <text>分享</text>
+          <text class="icon">→</text>
+        </view>
+      </view>
+
+      <!-- 装饰星星 -->
+      <view class="card-star card-star-1">🌟</view>
+      <view class="card-star card-star-2">✨</view>
+
+      <!-- 核心答案区 -->
+      <view class="card-answer-section">
+        <view class="card-answer">
+          <view class="card-answer-text gradient-text">「 {{resultAnswer}} 」</view>
+        </view>
+      </view>
+
+      <!-- 分隔线 -->
+      <view class="card-divider">
+        <view class="card-divider-line"></view>
+      </view>
+
+      <!-- 用户心声 -->
+      <view class="card-thought-section" wx:if="{{userThought}}">
+        <view class="card-thought-label">你的心声</view>
+        <view class="card-thought-content">{{userThought}}</view>
+      </view>
+
+      <!-- AI解读区 -->
+      <view class="card-analysis-section">
+        <view class="card-analysis-header" bindtap="onAnalysisToggle">
+          <view class="card-analysis-icon">{{analysisExpanded ? '🔥' : '💬'}}</view>
+          <view class="card-analysis-title">书灵解读</view>
+          <view class="card-analysis-arrow">{{analysisExpanded ? '▲' : '▼'}}</view>
+        </view>
+
+        <view class="card-analysis-content {{analysisExpanded ? 'expanded' : ''}}">
+          <view class="card-analysis-text">{{displayedAnalysis}}</view>
+          <view class="cursor {{isTyping ? 'blinking' : ''}}"></view>
+        </view>
+      </view>
+
+      <!-- 操作按钮组 -->
+      <view class="card-action-buttons">
+        <view class="card-action-btn card-btn-secondary" bindtap="onAskAgain">
+          <text>再问一次</text>
+        </view>
+        <view class="card-action-btn card-btn-primary" bindtap="onGenerateCard">
+          <text>生成卡片</text>
+        </view>
+      </view>
+
+      <!-- 时间戳 -->
+      <view class="card-timestamp">记录于 {{resultTimestamp}}</view>
+    </view>
+  </view>
 </view>

@@ -1,240 +1,42 @@
-// pages/home/home.ts
-import { getDailyFortune, getLunarDate, getWeightedAnswer, zenQuotes } from '../../utils/answers'
+// pages/result/result.ts
+import { getWeightedAnswer } from '../../utils/answers'
 
 Page({
   data: {
-    statusBarHeight: 44,
-    dailyFortune: '今日宜静心,诸事渐明',
-    lunarDate: '农历十二月廿九',
-    selectedCategory: '', // 默认不选择,长按时如果为空则使用"此时此刻"
-    isBreathing: true,
+    category: '',
     userThought: '', // 用户输入的心声
-    categories: [
-      { key: 'emotion', name: '关于感情', icon: '🍂' },
-      { key: 'career', name: '工作与事业', icon: '🛤️' },
-      { key: 'study', name: '学业与考试', icon: '📖' },
-      { key: 'wealth', name: '财富与好运', icon: '💰' },
-      { key: 'health', name: '身体与能量', icon: '🌿' },
-      { key: 'dream', name: '心中的梦想', icon: '🎈' },
-      { key: 'general', name: '此时此刻', icon: '✨' }
-    ],
-    // 长按交互状态
-    isPressing: false,
-    currentPage: 0,
-    visiblePages: [0, 1, 2, 3, 4],
-    currentZenQuote: '',
-    showResultCard: false,
-    resultAnswer: '',
-    resultTimestamp: '',
-    // AI解读相关
+    answer: '',
+    timestamp: '',
     analysisExpanded: false,
     displayedAnalysis: '',
     fullAnalysis: '',
     isTyping: false
   },
 
-  // 定时器
-  pageFlipTimer: null as any,
-  vibrateTimer: null as any,
-  quoteTimer: null as any,
-  pressStartTime: 0,
-  bgAudio: null as any,
   typewriterTimer: null as any,
-  pageFlipAudio: null as any, // 翻书音效
 
-  onLoad() {
-    // 获取状态栏高度
-    const systemInfo = wx.getSystemInfoSync()
-    this.setData({
-      statusBarHeight: systemInfo.statusBarHeight || 44,
-      dailyFortune: getDailyFortune(),
-      lunarDate: getLunarDate(),
-      currentZenQuote: zenQuotes[0]
-    })
-
-    // 初始化翻书音效
-    this.pageFlipAudio = wx.createInnerAudioContext()
-    this.pageFlipAudio.src = '/assets/audio/page-flip.wav'
-    this.pageFlipAudio.loop = true // 循环播放
-  },
-
-  // 点击每日一签卡片
-  onDailyCardTap() {
-    wx.vibrateShort({ type: 'light' })
-    // TODO: 待TypeScript编译后恢复
-    // wx.navigateTo({
-    //   url: '/pages/daily/daily'
-    // })
-    wx.showToast({
-      title: '每日一签(待编译)',
-      icon: 'none'
-    })
-  },
-
-  // 选择问题类型
-  onCategoryTap(e: any) {
-    const { key } = e.currentTarget.dataset
-    wx.vibrateShort({ type: 'medium' })
+  onLoad(options: any) {
+    const category = options.category || 'general'
+    const userThought = decodeURIComponent(options.thought || '')
+    const answer = options.answer ? decodeURIComponent(options.answer) : this.generateAnswer(category)
     
-    this.setData({
-      selectedCategory: key
-    })
-  },
-
-  // 输入框内容变化
-  onInputChange(e: any) {
-    this.setData({
-      userThought: e.detail.value
-    })
-  },
-
-  // 长按开始
-  onTouchStart() {
-    // 如果用户没有选择分类,默认使用"此时此刻"
-    const categoryToUse = this.data.selectedCategory || 'general'
-
-    this.pressStartTime = Date.now()
-
-    // 停止呼吸动画，进入按压状态
-    this.setData({
-      isBreathing: false,
-      isPressing: true,
-      selectedCategory: categoryToUse // 更新为实际使用的分类
-    })
-
-    // 播放翻书音效
-    if (this.pageFlipAudio) {
-      this.pageFlipAudio.play()
-    }
-
-    // 启动翻书动画
-    this.startPageFlip()
-
-    // 启动震动反馈
-    this.startVibration()
-
-    // 启动禅语切换
-    this.startZenQuotes()
-  },
-
-  // 长按结束 - 显示结果卡片
-  onTouchEnd() {
-    if (!this.data.isPressing) return
-
-    const pressDuration = Date.now() - this.pressStartTime
-
-    // 停止所有动画
-    this.stopAllAnimations()
-
-    // 如果按压时间少于2秒，提示用户
-    if (pressDuration < 2000) {
-      wx.vibrateShort({ type: 'heavy' })
-      wx.showToast({
-        title: '请长按至少2秒',
-        icon: 'none'
-      })
-      this.setData({
-        isBreathing: true,
-        isPressing: false
-      })
-      return
-    }
-
-    // 生成结果
-    this.generateResult()
-  },
-
-  // 触摸取消
-  onTouchCancel() {
-    this.stopAllAnimations()
-    this.setData({
-      isBreathing: true,
-      isPressing: false
-    })
-  },
-
-  // 开始翻书动画
-  startPageFlip() {
-    let flipCount = 0
-    this.pageFlipTimer = setInterval(() => {
-      const currentPage = flipCount % 5
-      this.setData({ currentPage })
-      flipCount++
-    }, 100)
-  },
-
-  // 持续震动 - 海浪式脉动
-  startVibration() {
-    // 海浪震动模式: 渐强渐弱的循环
-    const wavePattern = [
-      { type: 'light', delay: 0 },      // 浪起
-      { type: 'light', delay: 150 },    
-      { type: 'medium', delay: 300 },   // 浪峰
-      { type: 'light', delay: 450 },    
-      { type: 'light', delay: 600 },    // 浪落
-      // 短暂停顿,然后下一波
-    ]
-    
-    let patternIndex = 0
-    const executeWave = () => {
-      const current = wavePattern[patternIndex]
-      wx.vibrateShort({ type: current.type as any })
-      patternIndex = (patternIndex + 1) % wavePattern.length
-    }
-    
-    // 立即执行第一次
-    executeWave()
-    
-    // 每150ms执行一次,形成流畅的波浪效果
-    this.vibrateTimer = setInterval(() => {
-      executeWave()
-    }, 150)
-  },
-
-  // 禅语切换
-  startZenQuotes() {
-    let quoteIndex = 0
-    this.quoteTimer = setInterval(() => {
-      quoteIndex = (quoteIndex + 1) % zenQuotes.length
-      this.setData({
-        currentZenQuote: zenQuotes[quoteIndex]
-      })
-    }, 2000)
-  },
-
-  // 停止所有动画
-  stopAllAnimations() {
-    if (this.pageFlipTimer) clearInterval(this.pageFlipTimer)
-    if (this.vibrateTimer) clearInterval(this.vibrateTimer)
-    if (this.quoteTimer) clearInterval(this.quoteTimer)
-    
-    // 停止翻书音效
-    if (this.pageFlipAudio) {
-      this.pageFlipAudio.stop()
-    }
-    
-    if (this.bgAudio) {
-      this.bgAudio.stop()
-      this.bgAudio.destroy()
-    }
-  },
-
-  // 生成结果
-  generateResult() {
-    // 生成答案
-    const answer = getWeightedAnswer(this.data.selectedCategory)
+    // 生成时间戳
     const timestamp = this.formatTimestamp(new Date())
 
-    // 重震反馈
-    wx.vibrateShort({ type: 'heavy' })
-
-    // 显示结果卡片
     this.setData({
-      isPressing: false,
-      showResultCard: true,
-      resultAnswer: answer,
-      resultTimestamp: timestamp
+      category,
+      userThought,
+      answer,
+      timestamp
     })
+
+    // 播放揭晓音效
+    wx.vibrateShort({ type: 'heavy' })
+  },
+
+  // 生成随机答案
+  generateAnswer(category: string): string {
+    return getWeightedAnswer(category)
   },
 
   // 格式化时间戳
@@ -245,22 +47,6 @@ Page({
     const hour = String(date.getHours()).padStart(2, '0')
     const minute = String(date.getMinutes()).padStart(2, '0')
     return `${year}.${month}.${day} ${hour}:${minute}`
-  },
-
-  // 关闭结果卡片
-  onCloseResultCard() {
-    wx.vibrateShort({ type: 'light' })
-    this.setData({
-      showResultCard: false,
-      isBreathing: true,
-      analysisExpanded: false,
-      displayedAnalysis: '',
-      fullAnalysis: '',
-      isTyping: false
-    })
-    if (this.typewriterTimer) {
-      clearInterval(this.typewriterTimer)
-    }
   },
 
   // 切换AI解读展开/收起
@@ -288,7 +74,7 @@ Page({
 
     // 模拟AI生成(实际应调用后端API)
     setTimeout(() => {
-      const analysis = this.getMockAnalysis(this.data.selectedCategory, this.data.resultAnswer)
+      const analysis = this.getMockAnalysis(this.data.category, this.data.answer)
       this.setData({
         fullAnalysis: analysis
       })
@@ -379,6 +165,14 @@ Page({
     }, 50)
   },
 
+  // 返回首页
+  onBackTap() {
+    wx.vibrateShort({ type: 'light' })
+    wx.reLaunch({
+      url: '/pages/home/home'
+    })
+  },
+
   // 分享
   onShareTap() {
     wx.vibrateShort({ type: 'medium' })
@@ -391,7 +185,9 @@ Page({
   // 再问一次
   onAskAgain() {
     wx.vibrateShort({ type: 'medium' })
-    this.onCloseResultCard()
+    wx.reLaunch({
+      url: '/pages/home/home'
+    })
   },
 
   // 生成卡片
@@ -403,22 +199,9 @@ Page({
     })
   },
 
-  onShow() {
-    // 页面显示时恢复呼吸动画
-    this.setData({
-      isBreathing: true
-    })
-  },
-
   onUnload() {
-    // 清理所有定时器
-    this.stopAllAnimations()
     if (this.typewriterTimer) {
       clearInterval(this.typewriterTimer)
-    }
-    // 销毁翻书音效
-    if (this.pageFlipAudio) {
-      this.pageFlipAudio.destroy()
     }
   }
 })

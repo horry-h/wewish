@@ -1,0 +1,63 @@
+<!--pages/result/result.wxml-->
+<view class="result-container">
+  <!-- 顶部操作栏 -->
+  <view class="top-bar">
+    <view class="back-btn" bindtap="onBackTap">
+      <text class="icon">←</text>
+      <text>返回</text>
+    </view>
+    <view class="share-btn" bindtap="onShareTap">
+      <text>分享</text>
+      <text class="icon">→</text>
+    </view>
+  </view>
+
+  <!-- 装饰星星 -->
+  <view class="star star-1">🌟</view>
+  <view class="star star-2">✨</view>
+
+  <!-- 核心答案区 -->
+  <view class="answer-section">
+    <view class="answer-card">
+      <view class="answer-text gradient-text">「 {{answer}} 」</view>
+    </view>
+  </view>
+
+  <!-- 分隔线 -->
+  <view class="divider">
+    <view class="divider-line"></view>
+  </view>
+
+  <!-- 用户心声 -->
+  <view class="thought-section" wx:if="{{userThought}}">
+    <view class="thought-label">你的心声</view>
+    <view class="thought-content">{{userThought}}</view>
+  </view>
+
+  <!-- AI解读区 -->
+  <view class="analysis-section">
+    <view class="analysis-header" bindtap="onAnalysisToggle">
+      <view class="analysis-icon">{{analysisExpanded ? '🔥' : '💬'}}</view>
+      <view class="analysis-title">书灵解读</view>
+      <view class="analysis-arrow">{{analysisExpanded ? '▲' : '▼'}}</view>
+    </view>
+
+    <view class="analysis-content {{analysisExpanded ? 'expanded' : ''}}">
+      <view class="analysis-text">{{displayedAnalysis}}</view>
+      <view class="cursor {{isTyping ? 'blinking' : ''}}"></view>
+    </view>
+  </view>
+
+  <!-- 操作按钮 -->
+  <view class="action-buttons">
+    <view class="btn btn-secondary" bindtap="onAskAgain">
+      <text>再问一次</text>
+    </view>
+    <view class="btn btn-primary" bindtap="onGenerateCard">
+      <text>生成卡片</text>
+    </view>
+  </view>
+
+  <!-- 时间戳 -->
+  <view class="timestamp">记录于 {{timestamp}}</view>
+</view>

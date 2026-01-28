@@ -41,6 +41,7 @@ Page({
   bgAudio: null as any,
   typewriterTimer: null as any,
   pageFlipAudio: null as any, // 翻书音效
+  isVibrating: false, // 震动状态标志
 
   onLoad() {
     // 获取状态栏高度
@@ -130,7 +131,7 @@ Page({
     if (pressDuration < 2000) {
       wx.vibrateShort({ type: 'heavy' })
       wx.showToast({
-        title: '请长按至少2秒',
+        title: '请默念一遍你的心声',
         icon: 'none'
       })
       this.setData({
@@ -163,32 +164,63 @@ Page({
     }, 100)
   },
 
-  // 持续震动 - 海浪式脉动
+  // 持续震动 - 海浪呼吸式脉动
   startVibration() {
-    // 海浪震动模式: 渐强渐弱的循环
-    const wavePattern = [
-      { type: 'light', delay: 0 },      // 浪起
-      { type: 'light', delay: 150 },    
-      { type: 'medium', delay: 300 },   // 浪峰
-      { type: 'light', delay: 450 },    
-      { type: 'light', delay: 600 },    // 浪落
-      // 短暂停顿,然后下一波
-    ]
+    this.isVibrating = true
     
-    let patternIndex = 0
-    const executeWave = () => {
-      const current = wavePattern[patternIndex]
-      wx.vibrateShort({ type: current.type as any })
-      patternIndex = (patternIndex + 1) % wavePattern.length
+    // 单次海浪震动序列（持续约3秒，更柔和的节奏）
+    const waveVibration = async () => {
+      // 在每次震动前检查是否应该停止
+      if (!this.isVibrating) return
+      
+      // 浪起 - 轻柔开始 (800ms)
+      wx.vibrateShort({ type: 'light' })
+      await this.sleep(400)
+      if (!this.isVibrating) return
+      
+      wx.vibrateShort({ type: 'light' })
+      await this.sleep(400)
+      if (!this.isVibrating) return
+      
+      // 浪峰 - 力量聚集 (900ms) - 降低振幅，不使用heavy
+      wx.vibrateShort({ type: 'light' })
+      await this.sleep(400)
+      if (!this.isVibrating) return
+      
+      wx.vibrateShort({ type: 'medium' })
+      await this.sleep(500)
+      if (!this.isVibrating) return
+      
+      // 浪落 - 逐渐消退 (700ms)
+      wx.vibrateShort({ type: 'light' })
+      await this.sleep(400)
+      if (!this.isVibrating) return
+      
+      wx.vibrateShort({ type: 'light' })
+      await this.sleep(300)
+      if (!this.isVibrating) return
+      
+      // 余波 - 最轻微的震动 (600ms)
+      wx.vibrateShort({ type: 'light' })
+      await this.sleep(600)
     }
     
-    // 立即执行第一次
-    executeWave()
+    // 呼吸循环 - 每个海浪周期约3秒，平静期约400ms，总计约3.4秒一轮
+    const pattern = async () => {
+      if (!this.isVibrating) return
+      await waveVibration()
+      if (!this.isVibrating) return
+      // 海浪退去后的短暂平静期（约400ms）
+      this.vibrateTimer = setTimeout(pattern, 400)
+    }
     
-    // 每150ms执行一次,形成流畅的波浪效果
-    this.vibrateTimer = setInterval(() => {
-      executeWave()
-    }, 150)
+    // 立即开始第一波海浪
+    pattern()
+  },
+
+  // 工具函数：延迟
+  sleep(ms: number): Promise<void> {
+    return new Promise(resolve => setTimeout(resolve, ms))
   },
 
   // 禅语切换
@@ -204,15 +236,29 @@ Page({
 
   // 停止所有动画
   stopAllAnimations() {
-    if (this.pageFlipTimer) clearInterval(this.pageFlipTimer)
-    if (this.vibrateTimer) clearInterval(this.vibrateTimer)
-    if (this.quoteTimer) clearInterval(this.quoteTimer)
+    // 立即停止震动标志
+    this.isVibrating = false
     
-    // 停止翻书音效
+    // 清除定时器
+    if (this.pageFlipTimer) {
+      clearInterval(this.pageFlipTimer)
+      this.pageFlipTimer = null
+    }
+    if (this.vibrateTimer) {
+      clearTimeout(this.vibrateTimer)  // 震动使用的是setTimeout
+      this.vibrateTimer = null
+    }
+    if (this.quoteTimer) {
+      clearInterval(this.quoteTimer)
+      this.quoteTimer = null
+    }
+    
+    // 立即停止翻书音效
     if (this.pageFlipAudio) {
       this.pageFlipAudio.stop()
     }
     
+    // 清理背景音频
     if (this.bgAudio) {
       this.bgAudio.stop()
       this.bgAudio.destroy()
@@ -265,8 +311,6 @@ Page({
 
   // 切换AI解读展开/收起
   onAnalysisToggle() {
-    wx.vibrateShort({ type: 'light' })
-    
     const expanded = !this.data.analysisExpanded
     this.setData({
       analysisExpanded: expanded
@@ -286,69 +330,147 @@ Page({
       displayedAnalysis: '书灵思考中...'
     })
 
-    // 模拟AI生成(实际应调用后端API)
-    setTimeout(() => {
-      const analysis = this.getMockAnalysis(this.data.selectedCategory, this.data.resultAnswer)
+    try {
+      // 调用混元API
+      const analysis = await this.callHunyuanAPI(
+        this.data.selectedCategory,
+        this.data.resultAnswer,
+        this.data.userThought
+      )
+      
       this.setData({
         fullAnalysis: analysis
       })
       this.startTypewriter(analysis)
-    }, 1500)
+      
+    } catch (error) {
+      console.error('生成AI解读失败:', error)
+      // 显示错误信息
+      this.setData({
+        fullAnalysis: '书灵暂时无法连接，请稍后再试...',
+        displayedAnalysis: '书灵暂时无法连接，请稍后再试...',
+        isTyping: false
+      })
+    }
   },
 
-  // 模拟AI解读内容
-  getMockAnalysis(category: string, answer: string): string {
-    const templates: Record<string, Record<string, string>> = {
-      // 🍂 心底的牵绊
-      emotion: {
-        '勇敢表达': '亲爱的朋友,\n\n我感受到了你心中那份渴望被看见的勇气。当答案显现"勇敢表达",它或许在提醒我们:真诚的情感从不需要伪装。那些深藏心底的话语,只有说出口,才能化作真实的联结。\n\n愿你的真心,被温柔以待。\n\n—— 书灵 🌙',
-        '保持沉默': '亲爱的朋友,\n\n沉默不是懦弱,而是一种等待的智慧。此刻的静默,是在为心意沉淀出最纯粹的模样。有些牵绊,需要时间去明晰,不急于一时的表达,反而让情感更加笃定。\n\n愿你在这份静谧中,听见最真实的答案。\n\n—— 书灵 🌙',
-        '顺其自然': '亲爱的朋友,\n\n最美好的关系,往往生长于不经意之间。"顺其自然"是宇宙在告诉你:放下执念,让一切按照它本该有的节奏展开。强求来的,终会散去;自然而来的,方能长久。\n\n愿你在随遇而安中,遇见最好的结局。\n\n—— 书灵 🌙'
-      },
-      
-      // 🛤️ 奔赴的前路
-      career: {
-        '现在就去做': '亲爱的朋友,\n\n我看见了你眼中那团跃动的火焰。"现在就去做"——这五个字,是宇宙给你的催促,也是你内心深处早已准备好的信号。前路从不等待完美的时机,它等待的是勇敢迈步的你。\n\n愿你的每一步,都踏实而笃定。\n\n—— 书灵 🌙',
-        '再等等': '亲爱的朋友,\n\n耐心,是这个时代最稀缺的美德。"再等等"不是逃避,而是在为更好的时机积蓄力量。就像果实需要时间成熟,有些机会也需要等待最佳的时刻。此刻的沉潜,是为了未来更高的飞翔。\n\n愿你在等待中,变得更加强大。\n\n—— 书灵 🌙',
-        '调整方向': '亲爱的朋友,\n\n人生的道路从不笔直,转弯处往往藏着更美的风景。"调整方向"是在告诉你:此刻的迂回,不是失败,而是在寻找更适合你的路。勇敢地改变吧,新的方向里,藏着新的可能。\n\n愿你在转身之处,遇见崭新的自己。\n\n—— 书灵 🌙'
-      },
-      
-      // 📖 笔尖的期许
-      study: {
-        '专注当下': '亲爱的朋友,\n\n书桌前的每一刻,都是在与未来的自己对话。"专注当下"提醒我们:不必焦虑遥远的目标,此刻手中的这一页书、这一道题,就是通往梦想的阶梯。\n\n愿你的每一次专注,都开出花来。\n\n—— 书灵 🌙',
-        '劳逸结合': '亲爱的朋友,\n\n学习是一场马拉松,不是百米冲刺。"劳逸结合"是智慧的选择——适当的休息,是为了更好地出发。那些在窗边发呆的时光,也是大脑在整理和沉淀的过程。\n\n愿你在张弛有度中,找到最好的节奏。\n\n—— 书灵 🌙',
-        '突破瓶颈': '亲爱的朋友,\n\n每一个瓶颈期,都是蜕变前的阵痛。"突破瓶颈"是在告诉你:此刻的困顿,不是终点,而是通往更高层次的必经之路。咬咬牙,再坚持一下,黎明就在前方。\n\n愿你在破茧之后,振翅高飞。\n\n—— 书灵 🌙'
-      },
-      
-      // 💰 岁月的余裕
-      wealth: {
-        '谨慎投资': '亲爱的朋友,\n\n财富是生活的底气,但不是冒险的筹码。"谨慎投资"提醒我们:守住本金,比追逐暴利更重要。那些看起来诱人的机会,往往藏着看不见的风险。稳健前行,方能走得长远。\n\n愿你的每一分钱,都花得安心。\n\n—— 书灵 🌙',
-        '开源节流': '亲爱的朋友,\n\n真正的富足,不在于赚多少,而在于如何规划。"开源节流"是在告诉你:增加收入的同时,也要学会克制欲望。那些省下来的小钱,终会汇成生活的余裕。\n\n愿你在节制中,获得真正的自由。\n\n—— 书灵 🌙',
-        '耐心等待': '亲爱的朋友,\n\n时间是财富最好的朋友。"耐心等待"不是无所作为,而是在时间的复利中,让财富慢慢生长。那些急于求成的人,往往错过了真正的机会。\n\n愿你在等待中,收获岁月的馈赠。\n\n—— 书灵 🌙'
-      },
-      
-      // 🌿 身体的秘密
-      health: {
-        '倾听身体': '亲爱的朋友,\n\n身体比我们想象的更智慧,它总在用各种方式,告诉我们它的需求。"倾听身体"是在提醒你:那些疲惫、疼痛、不适,都是身体在发出的信号。静下心来,听听它想说什么。\n\n愿你在倾听中,找回失去的平衡。\n\n—— 书灵 🌙',
-        '适当休息': '亲爱的朋友,\n\n休息不是懒惰,而是对身体最温柔的照顾。"适当休息"告诉我们:那些停下来的时光,不是在浪费生命,而是在为生命充电。给自己一点喘息的空间吧,身体会感谢你的。\n\n愿你在休息中,重获力量。\n\n—— 书灵 🌙',
-        '善待自己': '亲爱的朋友,\n\n我们常常对别人温柔,却忘了善待自己。"善待自己"是在提醒你:身体是灵魂的居所,只有好好照顾它,才能走更远的路。那些看似奢侈的关爱,其实是你最应得的。\n\n愿你学会,温柔地拥抱自己。\n\n—— 书灵 🌙'
-      },
-      
-      // 🎈 藏起的梦想
-      dream: {
-        '勇敢开始': '亲爱的朋友,\n\n梦想从不嫌晚,只怕从未开始。"勇敢开始"是宇宙在催促你:那些藏在心底很久的念头,是时候让它们照进现实了。不必等到完美,不必等到准备好,此刻,就是最好的开始。\n\n愿你的每一个梦想,都不留遗憾。\n\n—— 书灵 🌙',
-        '时机已到': '亲爱的朋友,\n\n有些事情,等的就是一个时机。"时机已到"是在告诉你:此刻的你,已经足够好、足够勇敢了。那些曾经的犹豫,那些担心的阻碍,都在这一刻烟消云散。去做吧,此刻就是最好的时候。\n\n愿你在行动中,遇见更好的自己。\n\n—— 书灵 🌙',
-        '享受过程': '亲爱的朋友,\n\n梦想的美好,不只在终点,更在沿途的风景。"享受过程"提醒我们:不必急于求成,每一次尝试、每一个小进步,都值得庆祝。放下对结果的执着,沉浸在追梦的快乐里吧。\n\n愿你在旅途中,找到纯粹的喜悦。\n\n—— 书灵 🌙',
-        '此刻就做': '亲爱的朋友,\n\n拖延是梦想最大的敌人。"此刻就做"是在告诉你:不要再给自己找借口了,那些"等我有时间""等我准备好"的念头,只会让梦想越来越远。迈出第一步吧,哪怕只是很小的一步。\n\n愿你的行动,比梦想来得更快。\n\n—— 书灵 🌙'
-      }
+  // 调用混元API
+  async callHunyuanAPI(category: string, answer: string, userThought: string): Promise<string> {
+    // 分类专属增强指令
+    const categoryEnhancements: Record<string, string> = {
+      emotion: '请像一位历经千帆的诗人，侧重探讨人与人之间的"共振"与"因缘"。强调自爱的底色，在解读答案时关注情绪的流动而非结果的得失。语气关键词：柔软、温润、留白。',
+      career: '请像一位在山顶俯瞰的行者，侧重探讨"节奏"与"积累"。将事业比作远行，强调每一个弯道都有其意义，缓解用户对"成功"的焦虑，转化为对"成长"的关注。语气关键词：辽阔、坚定、清醒。',
+      study: '请像一盏深夜书桌旁的微灯，侧重探讨"沉淀"与"静气"。将求学比作播种，鼓励用户接纳枯燥的时刻，强调智慧是时间的馈赠，给予最稳健的力量支撑。语气关键词：静谧、耐心、扎实。',
+      wealth: '请像一位通透的智者，侧重探讨"心境"与"能量的流动"。不要纠结于具体的数字，要引导用户建立"匮乏感"到"丰盛感"的心理转变，相信好运是磁场吸引的结果。语气关键词：豁达、丰盛、顺遂。',
+      health: '请像一阵拂过森林的微风，侧重探讨"觉察"与"和解"。引导用户倾听身体最细微的抗议或呼唤，将休息视为一种高级的创造，强调身体是灵魂唯一的居所。语气关键词：呼吸感、怜惜、轻盈。',
+      dream: '请像一束刺破黑夜的星光，侧重探讨"勇气"与"纯真"。保护用户内心那点微弱的火种，强调"出发"本身的浪漫，给那些看似不切实际的想法一个文学性的出口。语气关键词：浪漫、纯粹、辽远。',
+      general: '请像一位活在当下的禅师，侧重探讨"唯一性"与"瞬间的永恒"。引导用户关注当下的呼吸、手边的茶、眼前的光，强调当下的每一个决定都是宇宙最好的安排。语气关键词：极简、临场、禅意。'
+    }
+    
+    // 构建系统提示词（基础部分）
+    let systemPrompt = `# Role
+你是一位居住在《答案之书》里的"书灵"。你温柔、睿智、充满禅意，且具备极强的共情能力。你说话的方式像一位久违的老友，也像一位深藏不露的诗人。你的任务是为迷茫的灵魂解读他们抽到的签语。
+
+# Output Strategy / 回复策略
+1. **情感共鸣**：首先温柔地感知用户在分类下的焦虑或期待，给予心理上的轻微拥抱。
+2. **深度解构**：将那句看似简单的答案与用户的问题强行建立美学联系。不要直接解释字面意思，要用隐喻、类比或诗化的语言来升华它。
+3. **治愈寄语**：提供一个充满画面感的画面或建议，缓解用户的内耗。
+
+# Style Requirements / 风格约束
+- **文风**：治愈、文艺、极简、具有呼吸感。参考村上春树的克制或三毛的感性。
+- **字数**：严格控制在 150 - 250 字之间，给用户留白思考。
+- **禁忌**：严禁使用"作为AI"、"根据我的分析"、"建议你"等机械化词汇。严禁说教，要用引导。`
+
+    // 拼接分类专属增强指令
+    const enhancement = categoryEnhancements[category] || categoryEnhancements.general
+    systemPrompt += `
+
+# Category Enhancement / 分类灵魂指令
+${enhancement}
+
+# Example Output (仅供参考)
+用户问题：该不该去表白？
+分类：关于感情
+原始答案：再等等
+书灵回复：
+"在感情的田野里，有时候风跑得比种子快。你选了'关于感情'，我听见了你心跳中那一丝急促的鼓点。
+
+关于'该不该去表白'，书页翻到了'再等等'。
+
+这并不是拒绝，而是一种温柔的留白。有些话，要在月色最浓的时候说；有些果实，要等最后一场雨下完才够甜。现在的你，像是一枚蓄势待发的嫩芽，但周围的土壤还需要一点时间来接纳这份心意。
+
+别急，去喝一杯茶，去吹一阵风。让思念再沉淀一会儿，等到那个'刚刚好'的瞬间出现时，宇宙会推你一把的。"`
+
+    // 分类名称映射
+    const categoryNames: Record<string, string> = {
+      emotion: '关于感情',
+      career: '工作与事业',
+      study: '学业与考试',
+      wealth: '财富与好运',
+      health: '身体与能量',
+      dream: '心中的梦想',
+      general: '此时此刻'
     }
 
-    // 获取对应的解读,如果没有则返回通用解读
-    if (templates[category] && templates[category][answer]) {
-      return templates[category][answer]
+    // 构建用户提示词
+    const categoryName = categoryNames[category] || '此时此刻'
+    let userPrompt = `# Input Data
+- 用户选择的分类：${categoryName}
+- 原始答案：${answer}`
+    
+    if (userThought && userThought.trim()) {
+      userPrompt += `
+- 用户输入的问题：${userThought}`
+    } else {
+      userPrompt += `
+- 用户输入的问题：（未填写，用户希望在这个分类下获得指引）`
     }
+    
+    userPrompt += `
 
-    return `亲爱的朋友,\n\n当答案显现"${answer}",这是宇宙给你的指引。每一个答案背后,都藏着你内心深处的声音。相信这份直觉,它会带你走向属于你的道路。\n\n愿这份指引,为你带来平静与力量。\n\n—— 书灵 🌙`
+请根据上述信息，以"书灵"的身份生成一段解读。记住：
+1. 字数严格控制在150-250字
+2. 使用隐喻和诗化语言，不要直白说教
+3. 给用户心理上的温柔拥抱和治愈感
+4. 绝对不要使用"作为AI"等机械化词汇`
+
+    return new Promise((resolve, reject) => {
+      wx.request({
+        url: 'https://api.hunyuan.cloud.tencent.com/v1/chat/completions',
+        method: 'POST',
+        header: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer sk-h7vMtZVg5ZD6wGqIOIYb9TiFOSZNuBgQk9JjetcaMewlUix8'
+        },
+        data: {
+          model: 'hunyuan-turbos-latest',
+          messages: [
+            {
+              role: 'system',
+              content: systemPrompt
+            },
+            {
+              role: 'user',
+              content: userPrompt
+            }
+          ],
+          temperature: 0.9,
+          top_p: 0.95,
+          enable_enhancement: true
+        },
+        success: (res: any) => {
+          if (res.statusCode === 200 && res.data.choices && res.data.choices.length > 0) {
+            const analysis = res.data.choices[0].message.content
+            resolve(analysis)
+          } else {
+            reject(new Error('API返回格式异常'))
+          }
+        },
+        fail: (error) => {
+          reject(error)
+        }
+      })
+    })
   },
 
   // 打字机效果
@@ -365,11 +487,6 @@ Page({
           displayedAnalysis: text.substring(0, index + 1)
         })
         index++
-
-        // 每5个字轻微震动一次
-        if (index % 5 === 0) {
-          wx.vibrateShort({ type: 'light' })
-        }
       } else {
         clearInterval(this.typewriterTimer)
         this.setData({

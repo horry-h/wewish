@@ -203,7 +203,7 @@ Page({
     if (pressDuration < 2000) {
       wx.vibrateShort({ type: 'heavy' })
       wx.showToast({
-        title: '请长按至少2秒',
+        title: '请默念一遍你的心声',
         icon: 'none'
       })
       return

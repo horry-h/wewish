@@ -1,0 +1,9 @@
+{
+  "name": "generateAnalysis",
+  "version": "1.0.0",
+  "description": "调用混元AI生成答案解读",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "~2.6.3"
+  }
+}

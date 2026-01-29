@@ -45,8 +45,11 @@ Page({
   pressStartTime: 0,
   bgAudio: null as any,
   typewriterTimer: null as any,
-  pageFlipAudio: null as any, // 翻书音效 A
-  pageFlipAudioB: null as any, // 翻书音效 B (备用)
+  // WebAudio 相关
+  audioContext: null as any, // WebAudio 上下文
+  audioBuffer: null as any, // 音频缓冲区
+  audioSource: null as any, // 音频源节点
+  isPlayingPageFlip: false, // 是否正在播放翻页音效
   isVibrating: false, // 震动状态标志
 
   onLoad() {
@@ -59,26 +62,165 @@ Page({
       currentZenQuote: zenQuotes[0]
     })
 
-    // 初始化两个翻书音效实例，用于交替播放实现无缝循环
-    // 音频已剪切为1.5秒，可以直接循环播放
-    this.pageFlipAudio = wx.createInnerAudioContext()
-    this.pageFlipAudio.src = '/assets/audio/page-flip.wav'
-    this.pageFlipAudio.loop = true // 直接使用系统循环
-    this.pageFlipAudio.obeyMuteSwitch = false
+    // 初始化 WebAudio 翻页音效
+    this.initPageFlipAudio()
+  },
+
+  // 初始化翻页音效（使用 WebAudio API）
+  initPageFlipAudio() {
+    try {
+      // 创建 WebAudio 上下文
+      this.audioContext = wx.createWebAudioContext()
+      
+      // 使用文件系统管理器读取本地音频
+      const fs = wx.getFileSystemManager()
+      
+      // 读取本地音频文件（base64或arraybuffer）
+      fs.readFile({
+        filePath: `${wx.env.USER_DATA_PATH}/../assets/audio/page-flip.wav`,
+        success: (res: any) => {
+          console.log('音频文件读取成功')
+          this.decodeAudioData(res.data)
+        },
+        fail: () => {
+          // 降级：尝试使用相对路径
+          console.log('尝试使用项目路径读取')
+          this.loadAudioFromProject()
+        }
+      })
+    } catch (error) {
+      console.error('WebAudio 初始化失败:', error)
+      console.log('将使用 InnerAudioContext 降级方案')
+      this.useFallbackAudio()
+    }
+  },
+
+  // 从项目路径加载音频
+  loadAudioFromProject() {
+    // 使用 wx.request 加载本地资源
+    // 注意：需要在小程序配置中将音频文件设置为不压缩
+    const audioPath = '/assets/audio/page-flip.wav'
     
-    // 备用音频实例（如果需要）
-    this.pageFlipAudioB = wx.createInnerAudioContext()
-    this.pageFlipAudioB.src = '/assets/audio/page-flip.wav'
-    this.pageFlipAudioB.loop = true
-    this.pageFlipAudioB.obeyMuteSwitch = false
+    // 直接使用 FileSystemManager 的同步方法
+    try {
+      const fs = wx.getFileSystemManager()
+      const res = fs.readFileSync(audioPath)
+      this.decodeAudioData(res)
+    } catch (error) {
+      console.error('同步读取失败:', error)
+      this.useFallbackAudio()
+    }
+  },
+
+  // 解码音频数据
+  decodeAudioData(arrayBuffer: ArrayBuffer) {
+    if (!this.audioContext) return
     
-    // 监听音频错误
-    this.pageFlipAudio.onError((res) => {
-      console.error('音频A播放错误:', res)
-    })
-    this.pageFlipAudioB.onError((res) => {
-      console.error('音频B播放错误:', res)
-    })
+    this.audioContext.decodeAudioData(
+      arrayBuffer,
+      (buffer: any) => {
+        this.audioBuffer = buffer
+        console.log('翻页音效加载成功，时长:', buffer.duration, '秒')
+      },
+      (err: any) => {
+        console.error('音频解码失败:', err)
+        this.useFallbackAudio()
+      }
+    )
+  },
+
+  // 降级方案：使用 InnerAudioContext
+  useFallbackAudio() {
+    console.log('使用 InnerAudioContext 降级方案')
+    const audio = wx.createInnerAudioContext()
+    audio.src = '/assets/audio/page-flip.wav'
+    audio.loop = true
+    audio.obeyMuteSwitch = false
+    
+    // 保存到特殊字段，表示使用降级方案
+    this.audioContext = {
+      fallback: true,
+      audio: audio
+    }
+  },
+
+  // 播放翻页音效（循环播放）
+  playPageFlipSound() {
+    if (!this.audioContext) {
+      console.warn('音频上下文未准备好')
+      return
+    }
+
+    // 检查是否使用降级方案
+    if (this.audioContext.fallback) {
+      if (this.audioContext.audio && !this.isPlayingPageFlip) {
+        this.audioContext.audio.play()
+        this.isPlayingPageFlip = true
+      }
+      return
+    }
+
+    // 使用 WebAudio 方案
+    if (!this.audioBuffer) {
+      console.warn('音频缓冲区未准备好')
+      return
+    }
+
+    if (this.isPlayingPageFlip) {
+      return // 已在播放中
+    }
+
+    this.isPlayingPageFlip = true
+    this.createAndPlaySource()
+  },
+
+  // 创建并播放音频源
+  createAndPlaySource() {
+    if (!this.audioContext || !this.audioBuffer || this.audioContext.fallback) return
+
+    // 创建音频源节点
+    const source = this.audioContext.createBufferSource()
+    source.buffer = this.audioBuffer
+    
+    // 连接到目标（扬声器）
+    source.connect(this.audioContext.destination)
+    
+    // 监听播放结束，实现循环
+    source.onended = () => {
+      if (this.isPlayingPageFlip) {
+        // 继续播放下一次
+        this.createAndPlaySource()
+      }
+    }
+    
+    // 保存引用
+    this.audioSource = source
+    
+    // 开始播放
+    source.start()
+  },
+
+  // 停止翻页音效
+  stopPageFlipSound() {
+    this.isPlayingPageFlip = false
+
+    // 检查是否使用降级方案
+    if (this.audioContext && this.audioContext.fallback) {
+      if (this.audioContext.audio) {
+        this.audioContext.audio.stop()
+      }
+      return
+    }
+    
+    // WebAudio 方案
+    if (this.audioSource) {
+      try {
+        this.audioSource.stop()
+        this.audioSource = null
+      } catch (error) {
+        console.error('停止音频失败:', error)
+      }
+    }
   },
 
   // 点击每日一签卡片
@@ -146,10 +288,8 @@ Page({
       selectedCategory: categoryToUse // 更新为实际使用的分类
     })
 
-    // 播放翻书音效（音频已剪切为1.5秒，直接循环播放即可）
-    if (this.pageFlipAudio) {
-      this.pageFlipAudio.play()
-    }
+    // 播放翻书音效（使用 WebAudio）
+    this.playPageFlipSound()
 
     // 启动翻书动画
     this.startPageFlip()
@@ -296,17 +436,14 @@ Page({
       this.quoteTimer = null
     }
 
-    // 立即停止音频播放（确保立即停止）
-    if (this.pageFlipAudio) {
-      this.pageFlipAudio.stop()
-      // 双重保险：暂停后再停止
-      this.pageFlipAudio.pause()
-    }
+    // 停止翻页音效（WebAudio）
+    this.stopPageFlipSound()
     
     // 清理背景音频
     if (this.bgAudio) {
       this.bgAudio.stop()
       this.bgAudio.destroy()
+      this.bgAudio = null
     }
   },
 
@@ -423,7 +560,7 @@ Page({
 
 # Style Requirements / 风格约束
 - **文风**：治愈、文艺、极简、具有呼吸感。参考村上春树的克制或三毛的感性。
-- **字数**：严格控制在 50 - 200 字之间，给用户留白思考。
+- **字数**：严格控制在 50 - 150 字之间，给用户留白思考。
 - **禁忌**：严禁使用"作为AI"、"根据我的分析"、"建议你"等机械化词汇。严禁说教，要用引导。`
 
     // 拼接分类专属增强指令
@@ -1052,12 +1189,14 @@ ${enhancement}
     if (this.typewriterTimer) {
       clearInterval(this.typewriterTimer)
     }
-    // 销毁翻书音效
-    if (this.pageFlipAudio) {
-      this.pageFlipAudio.destroy()
-    }
-    if (this.pageFlipAudioB) {
-      this.pageFlipAudioB.destroy()
+    // 销毁 WebAudio 上下文
+    if (this.audioContext) {
+      try {
+        this.audioContext.close()
+        this.audioContext = null
+      } catch (error) {
+        console.error('关闭音频上下文失败:', error)
+      }
     }
   }
 })

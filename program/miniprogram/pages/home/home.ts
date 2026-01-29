@@ -528,7 +528,7 @@ ${enhancement}
   // 生成卡片
   onGenerateCard() {
     wx.vibrateShort({ type: 'medium' })
-    this.drawPoster()
+    this.drawPoster(false, true) // 首次生成也使用历史随机壁纸
   },
 
   // 获取Bing壁纸 (支持每日壁纸和随机历史壁纸)

@@ -962,15 +962,16 @@ ${enhancement}
           const answerLines = this.wrapText(ctx, answerText, 650)
           currentY = answerStartY + answerLines.length * 80 + 10
 
-          // 9. 绘制装饰线
+          // 9. 绘制装饰线 - 向上偏移10px避免遮挡文本
+          const decorLineY = currentY - 10
           ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)'
           ctx.lineWidth = 2
           ctx.beginPath()
-          ctx.moveTo(150, currentY)
-          ctx.lineTo(600, currentY)
+          ctx.moveTo(150, decorLineY)
+          ctx.lineTo(600, decorLineY)
           ctx.stroke()
 
-          currentY += 20 // 进一步减小间距：30->20
+          currentY += 10 // 调整后的间距
 
           // 10. AI解读（自动换行，带内边距，动态计算高度）
           const analysis = this.data.fullAnalysis || '红了樱桃、绿了芭蕉，时间会告诉我们一切'

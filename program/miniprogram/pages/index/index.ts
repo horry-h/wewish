@@ -35,7 +35,9 @@ Page({
     showPosterModal: false,
     posterImagePath: '',
     currentBgImageUrl: '', // 当前使用的背景图URL
-    isRefreshingBg: false // 是否正在刷新背景
+    currentBgLocalPath: '', // 当前背景图的本地缓存路径
+    isRefreshingBg: false, // 是否正在刷新背景
+    showQuestion: false // 是否在海报上展示问题（默认不展示）
   },
 
   // 定时器
@@ -560,7 +562,7 @@ Page({
 
 # Style Requirements / 风格约束
 - **文风**：治愈、文艺、极简、具有呼吸感。参考村上春树的克制或三毛的感性。
-- **字数**：严格控制在 50 - 150 字之间，给用户留白思考。
+- **字数**：严格控制在 50 - 120 字之间，给用户留白思考。
 - **禁忌**：严禁使用"作为AI"、"根据我的分析"、"建议你"等机械化词汇。严禁说教，要用引导。`
 
     // 拼接分类专属增强指令
@@ -611,7 +613,7 @@ ${enhancement}
     userPrompt += `
 
 请根据上述信息，以"书灵"的身份生成一段解读。记住：
-1. 字数严格控制在50-200字
+1. 字数严格控制在50-120字（禁止输出字数）
 2. 使用隐喻和诗化语言，不要直白说教
 3. 给用户心理上的温柔拥抱和治愈感
 4. 绝对不要使用"作为AI"等机械化词汇`
@@ -791,10 +793,15 @@ ${enhancement}
         let needNewBg = forceRefreshBg || !this.data.currentBgImageUrl
         
         if (needNewBg) {
+          // 需要获取新背景
           try {
             const bingUrl = await this.getBingDailyImage(useRandomBg)
             bgImagePath = await this.downloadImage(bingUrl)
-            this.setData({ currentBgImageUrl: bingUrl })
+            // 同时缓存URL和本地路径
+            this.setData({ 
+              currentBgImageUrl: bingUrl,
+              currentBgLocalPath: bgImagePath
+            })
           } catch (error) {
             console.warn('获取Bing壁纸失败，使用默认渐变背景:', error)
             // 网络图片失败时使用空字符串，后续绘制渐变背景
@@ -802,11 +809,18 @@ ${enhancement}
           }
         } else {
           // 使用缓存的背景图
-          try {
-            bgImagePath = await this.downloadImage(this.data.currentBgImageUrl)
-          } catch (error) {
-            console.warn('加载缓存背景失败，使用默认渐变背景:', error)
-            bgImagePath = ''
+          if (this.data.currentBgLocalPath) {
+            // 优先使用已缓存的本地路径，避免重复下载
+            bgImagePath = this.data.currentBgLocalPath
+          } else if (this.data.currentBgImageUrl) {
+            // 如果只有URL没有本地路径，则下载并缓存
+            try {
+              bgImagePath = await this.downloadImage(this.data.currentBgImageUrl)
+              this.setData({ currentBgLocalPath: bgImagePath })
+            } catch (error) {
+              console.warn('加载缓存背景失败，使用默认渐变背景:', error)
+              bgImagePath = ''
+            }
           }
         }
 
@@ -897,7 +911,29 @@ ${enhancement}
           ctx.fillStyle = '#ffffff'
           ctx.fillText(category.name, 375, 160 + padding)
 
-          // 7. 中间：核心答案（大字体 + 阴影）
+          // 动态计算Y轴位置
+          let currentY = 220 + padding
+
+          // 7. 用户问题（如果开启）- 完整显示，不截断
+          let questionHeight = 0
+          if (this.data.showQuestion && this.data.userThought) {
+            ctx.font = '28px sans-serif'
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.8)'
+            ctx.textAlign = 'center'
+            
+            const questionText = `" ${this.data.userThought} "`
+            const questionLines = this.wrapText(ctx, questionText, 650)
+            
+            // 完整显示所有问题内容
+            questionLines.forEach((line, index) => {
+              ctx.fillText(line, 375, currentY + index * 40)
+            })
+            
+            questionHeight = questionLines.length * 40 + 30 // 问题高度 + 底部间距
+            currentY += questionHeight
+          }
+
+          // 8. 中间：核心答案（大字体 + 阴影）
           ctx.font = 'bold 68px sans-serif'
           ctx.fillStyle = '#ffffff'
           ctx.textAlign = 'center'
@@ -908,7 +944,10 @@ ${enhancement}
           
           // 使用智能换行绘制答案，避免单个标点符号单独成行
           const answerText = `「 ${this.data.resultAnswer} 」`
-          this.drawMultilineTextCentered(ctx, answerText, 375, 350, 650, 80)
+          // 动态调整间距：如果有问题显示，减小间距
+          const answerTopMargin = this.data.showQuestion && this.data.userThought ? 40 : 80
+          const answerStartY = currentY + answerTopMargin
+          this.drawMultilineTextCentered(ctx, answerText, 375, answerStartY, 650, 80)
           
           // 清除阴影
           ctx.shadowColor = 'transparent'
@@ -916,42 +955,70 @@ ${enhancement}
           ctx.shadowOffsetX = 0
           ctx.shadowOffsetY = 0
 
-          // 8. 绘制装饰线
+          // 更新Y轴位置（估算答案占用的高度）
+          const answerLines = this.wrapText(ctx, answerText, 650)
+          currentY = answerStartY + answerLines.length * 80 + 10
+
+          // 9. 绘制装饰线
           ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)'
           ctx.lineWidth = 2
           ctx.beginPath()
-          ctx.moveTo(150, 420)
-          ctx.lineTo(600, 420)
+          ctx.moveTo(150, currentY)
+          ctx.lineTo(600, currentY)
           ctx.stroke()
 
-          // 9. AI解读（自动换行，带内边距）
+          currentY += 20 // 进一步减小间距：30->20
+
+          // 10. AI解读（自动换行，带内边距，动态计算高度）
           const analysis = this.data.fullAnalysis || '红了樱桃、绿了芭蕉，时间会告诉我们一切'
           ctx.font = '26px sans-serif'
           ctx.fillStyle = 'rgba(255, 255, 255, 0.95)'
           ctx.textAlign = 'center'
-          this.drawMultilineTextCentered(ctx, analysis, 375, 480, 670, 36)
+          
+          // 计算AI解读的行数
+          const analysisLines = this.wrapText(ctx, analysis, 670)
+          const analysisLineHeight = 36
+          
+          // 底部信息固定区域：140px（从画布底部开始）
+          // 预留的安全间距：30px（AI解读与底部信息之间，缩小：60->30）
+          const bottomReserved = 140 + 30
+          const availableHeight = 1000 - currentY - bottomReserved
+          const maxAnalysisLines = Math.floor(availableHeight / analysisLineHeight)
+          
+          // 实际显示的行数（取实际行数和可用行数的最小值）
+          const displayLines = Math.min(analysisLines.length, maxAnalysisLines)
+          
+          // 绘制AI解读
+          analysisLines.slice(0, displayLines).forEach((line, index) => {
+            ctx.fillText(line, 375, currentY + index * analysisLineHeight)
+          })
+          
+          currentY += displayLines * analysisLineHeight + 30 // 减小间距：50->30
 
-          // 10. 底部：时间戳
-          ctx.font = '22px sans-serif'
-          ctx.fillStyle = 'rgba(255, 255, 255, 0.7)'
-          ctx.textAlign = 'center'
-          ctx.fillText(`记录于 ${this.data.resultTimestamp}`, 375, 880)
-
-          // 11. 品牌水印
+          // 11. 底部信息：固定在画布底部，与下边缘对齐
+          const bottomBaseY = 1000 - 140 // 画布高度 - 底部区域高度
+          
+          // 时间戳
           ctx.font = '20px sans-serif'
-          ctx.fillStyle = 'rgba(255, 255, 255, 0.5)'
-          ctx.fillText('—— 来自《心之解惑》书灵', 375, 920)
+          ctx.fillStyle = 'rgba(255, 255, 255, 0.6)'
+          ctx.textAlign = 'center'
+          ctx.fillText(`记录于 ${this.data.resultTimestamp}`, 375, bottomBaseY + 20)
 
-          // 12. 小程序码占位符（圆形 + 提示）
-          ctx.fillStyle = 'rgba(255, 255, 255, 0.15)'
+          // 12. 品牌水印
+          ctx.font = '18px sans-serif'
+          ctx.fillStyle = 'rgba(255, 255, 255, 0.45)'
+          ctx.fillText('—— 来自《心之解惑》书灵', 375, bottomBaseY + 55)
+
+          // 13. 小程序码占位符（圆形 + 提示）
+          ctx.fillStyle = 'rgba(255, 255, 255, 0.12)'
           ctx.beginPath()
-          ctx.arc(120, 950, 40, 0, 2 * Math.PI)
+          ctx.arc(120, bottomBaseY + 95, 38, 0, 2 * Math.PI)
           ctx.fill()
 
-          ctx.font = '18px sans-serif'
-          ctx.fillStyle = 'rgba(255, 255, 255, 0.6)'
+          ctx.font = '16px sans-serif'
+          ctx.fillStyle = 'rgba(255, 255, 255, 0.5)'
           ctx.textAlign = 'left'
-          ctx.fillText('扫码体验', 180, 960)
+          ctx.fillText('扫码体验', 175, bottomBaseY + 105)
 
           // 13. 导出图片
           setTimeout(() => {
@@ -1089,11 +1156,52 @@ ${enhancement}
     })
   },
 
+  // 文本换行辅助函数（返回行数组，用于计算高度）
+  wrapText(ctx: any, text: string, maxWidth: number): string[] {
+    const lines: string[] = []
+    
+    // 首先按换行符分割文本
+    const paragraphs = text.split('\n')
+    
+    // 对每个段落进行宽度换行处理
+    paragraphs.forEach((paragraph) => {
+      let currentLine = ''
+      
+      for (let i = 0; i < paragraph.length; i++) {
+        const char = paragraph[i]
+        const testLine = currentLine + char
+        const metrics = ctx.measureText(testLine)
+        
+        if (metrics.width > maxWidth && currentLine) {
+          lines.push(currentLine)
+          currentLine = char
+        } else {
+          currentLine = testLine
+        }
+      }
+      
+      // 每个段落结束后，添加当前行（即使为空，也保留空行效果）
+      lines.push(currentLine)
+    })
+
+    return lines
+  },
+
   // 关闭海报弹窗
   onClosePosterModal() {
     this.setData({
       showPosterModal: false
     })
+  },
+
+  // 切换是否展示问题
+  onToggleShowQuestion(e: any) {
+    const showQuestion = e.detail.value
+    this.setData({ showQuestion })
+    
+    // 立即重新绘制海报，实时预览效果（使用当前背景，不刷新）
+    wx.vibrateShort({ type: 'light' })
+    this.drawPoster(false, false) // forceRefreshBg=false 使用缓存背景
   },
 
   // 保存海报到相册

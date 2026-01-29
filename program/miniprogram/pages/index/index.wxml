@@ -113,9 +113,9 @@
         <view class="card-divider-line"></view>
       </view>
 
-      <!-- 用户心声 -->
+      <!-- 心中所念 -->
       <view class="card-thought-section" wx:if="{{userThought}}">
-        <view class="card-thought-label">你的心声</view>
+        <view class="card-thought-label">心中所念</view>
         <view class="card-thought-content">{{userThought}}</view>
       </view>
 
@@ -179,6 +179,20 @@
         mode="widthFix"
         show-menu-by-longpress
       />
+      
+      <!-- 展示问题开关 -->
+      <view class="poster-option" wx:if="{{userThought}}">
+        <view class="poster-option-label">
+          <text class="option-icon">💭</text>
+          <text>展示我的问题</text>
+        </view>
+        <switch 
+          class="poster-switch" 
+          checked="{{showQuestion}}" 
+          bindchange="onToggleShowQuestion"
+          color="#ffffff"
+        />
+      </view>
       
       <view class="poster-actions">
         <button class="poster-btn poster-btn-save" bindtap="savePoster">

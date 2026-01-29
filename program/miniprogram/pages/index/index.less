@@ -764,6 +764,50 @@
   box-shadow: 0 8rpx 24rpx rgba(0, 0, 0, 0.3);
 }
 
+/* 海报选项开关 */
+.poster-option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 24rpx;
+  padding: 20rpx 24rpx;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 16rpx;
+  backdrop-filter: blur(10rpx);
+  transition: all 0.3s ease;
+}
+
+.poster-option:active {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.poster-option-label {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  font-size: 26rpx;
+  color: rgba(255, 255, 255, 0.9);
+  font-weight: 500;
+}
+
+.option-icon {
+  font-size: 32rpx;
+  line-height: 1;
+}
+
+.poster-switch {
+  transform: scale(0.9);
+}
+
+/* Switch 组件自定义样式 */
+.poster-switch::after {
+  background: rgba(255, 255, 255, 0.3) !important;
+}
+
+.poster-switch[checked]::after {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+}
+
 .poster-actions {
   display: flex;
   gap: 20rpx;

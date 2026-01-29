@@ -10,6 +10,7 @@ Page({
     isBreathing: true,
     userThought: '', // 用户输入的心声
     categories: [
+      { key: 'impulse', name: '当下的冲动', icon: '☄️' },
       { key: 'emotion', name: '关于感情', icon: '🍂' },
       { key: 'career', name: '工作与事业', icon: '🛤️' },
       { key: 'study', name: '学业与考试', icon: '📖' },
@@ -542,6 +543,7 @@ Page({
   async callHunyuanAPI(category: string, answer: string, userThought: string): Promise<string> {
     // 分类专属增强指令
     const categoryEnhancements: Record<string, string> = {
+      impulse: '请像一位鼓励冒险也守护安全的向导。侧重探讨"直觉的纯粹性"与"行动的意义"。不要给出复杂的说教，要通过隐喻来解析这股冲动是来自灵魂的渴望还是暂时的迷雾，鼓励用户在安全的前提下，勇敢地听从内心的声音。语气关键词：炽热、纯粹、守护。',
       emotion: '请像一位历经千帆的诗人，侧重探讨人与人之间的"共振"与"因缘"。强调自爱的底色，在解读答案时关注情绪的流动而非结果的得失。语气关键词：柔软、温润、留白。',
       career: '请像一位在山顶俯瞰的行者，侧重探讨"节奏"与"积累"。将事业比作远行，强调每一个弯道都有其意义，缓解用户对"成功"的焦虑，转化为对"成长"的关注。语气关键词：辽阔、坚定、清醒。',
       study: '请像一盏深夜书桌旁的微灯，侧重探讨"沉淀"与"静气"。将求学比作播种，鼓励用户接纳枯燥的时刻，强调智慧是时间的馈赠，给予最稳健的力量支撑。语气关键词：静谧、耐心、扎实。',
@@ -587,6 +589,7 @@ ${enhancement}
 
     // 分类名称映射
     const categoryNames: Record<string, string> = {
+      impulse: '当下的冲动',
       emotion: '关于感情',
       career: '工作与事业',
       study: '学业与考试',
@@ -896,7 +899,7 @@ ${enhancement}
           // 4. 获取分类信息
           const category = this.data.categories.find(
             cat => cat.key === (this.data.selectedCategory || 'general')
-          ) || this.data.categories[6]
+          ) || this.data.categories[7] // 更新索引：新增分类后，'此时此刻'变为第8个（索引7）
 
           // 5. 内边距（让构图有呼吸感）
           const padding = 40

@@ -88,10 +88,11 @@
   flex-wrap: wrap;
   gap: 12rpx;
   row-gap: 12rpx;
+  max-width: 100%; /* 确保不溢出 */
 }
 
 .category-chip {
-  padding: 14rpx 24rpx;
+  padding: 14rpx 22rpx; /* 稍微减小左右padding：24->22 */
   background: rgba(255, 255, 255, 0.05);
   border: 2rpx solid rgba(255, 255, 255, 0.2);
   border-radius: 48rpx;
@@ -100,6 +101,7 @@
   gap: 6rpx;
   transition: all 0.3s ease;
   backdrop-filter: blur(10rpx);
+  flex-shrink: 0; /* 防止被压缩 */
 }
 
 .category-chip.active {

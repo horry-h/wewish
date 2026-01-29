@@ -1,4 +1,4 @@
-// pages/home/home.ts
+// pages/index/index.ts
 import { getDailyFortune, getLunarDate, getWeightedAnswer, zenQuotes } from '../../utils/answers-new'
 
 Page({
@@ -92,6 +92,27 @@ Page({
     
     this.setData({
       selectedCategory: key
+    })
+  },
+
+  // 重置选择
+  onResetTap() {
+    // 如果没有选择分类和输入内容，则不执行
+    if (!this.data.selectedCategory && !this.data.userThought) {
+      return
+    }
+    
+    wx.vibrateShort({ type: 'light' })
+    
+    this.setData({
+      selectedCategory: '',
+      userThought: ''
+    })
+    
+    wx.showToast({
+      title: '已重置',
+      icon: 'success',
+      duration: 1500
     })
   },
 
@@ -1001,7 +1022,7 @@ ${enhancement}
     // 不自动关闭弹窗,让用户可以继续操作
     return {
       title: `我抽到了答案：「${this.data.resultAnswer}」，你也来听听书灵的解读`,
-      path: '/pages/home/home',
+      path: '/pages/index/index',
       imageUrl: this.data.posterImagePath || ''
     }
   },

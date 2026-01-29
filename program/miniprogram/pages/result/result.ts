@@ -169,7 +169,7 @@ Page({
   onBackTap() {
     wx.vibrateShort({ type: 'light' })
     wx.reLaunch({
-      url: '/pages/home/home'
+      url: '/pages/index/index'
     })
   },
 
@@ -186,7 +186,7 @@ Page({
   onAskAgain() {
     wx.vibrateShort({ type: 'medium' })
     wx.reLaunch({
-      url: '/pages/home/home'
+      url: '/pages/index/index'
     })
   },
 

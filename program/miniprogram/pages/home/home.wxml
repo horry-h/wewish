@@ -43,7 +43,6 @@
       maxlength="100"
       value="{{userThought}}"
       bindinput="onInputChange"
-      auto-height
     />
     <view class="input-counter">{{userThought.length}}/100</view>
   </view>

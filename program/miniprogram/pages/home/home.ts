@@ -61,7 +61,15 @@ Page({
     // 初始化翻书音效
     this.pageFlipAudio = wx.createInnerAudioContext()
     this.pageFlipAudio.src = '/assets/audio/page-flip.wav'
-    this.pageFlipAudio.loop = true // 循环播放
+    this.pageFlipAudio.loop = false // 不自动循环，手动控制
+    
+    // 监听音频播放进度，实现无缝循环（只播放前1秒）
+    this.pageFlipAudio.onTimeUpdate(() => {
+      if (this.pageFlipAudio && this.pageFlipAudio.currentTime >= 1.2) {
+        // 达到1秒时立即重新开始，实现无缝循环
+        this.pageFlipAudio.seek(0)
+      }
+    })
   },
 
   // 点击每日一签卡片
@@ -108,8 +116,9 @@ Page({
       selectedCategory: categoryToUse // 更新为实际使用的分类
     })
 
-    // 播放翻书音效
+    // 播放翻书音效（无缝循环，只播放前1秒）
     if (this.pageFlipAudio) {
+      this.pageFlipAudio.seek(0) // 从头开始播放
       this.pageFlipAudio.play()
     }
 
@@ -728,7 +737,10 @@ ${enhancement}
           ctx.shadowBlur = 20
           ctx.shadowOffsetX = 0
           ctx.shadowOffsetY = 4
-          ctx.fillText(`「 ${this.data.resultAnswer} 」`, 375, 350)
+          
+          // 使用智能换行绘制答案，避免单个标点符号单独成行
+          const answerText = `「 ${this.data.resultAnswer} 」`
+          this.drawMultilineTextCentered(ctx, answerText, 375, 350, 650, 80)
           
           // 清除阴影
           ctx.shadowColor = 'transparent'
@@ -868,6 +880,7 @@ ${enhancement}
   drawMultilineTextCentered(ctx: any, text: string, centerX: number, y: number, maxWidth: number, lineHeight: number) {
     const lines: string[] = []
     let currentLine = ''
+    const punctuationChars = '」』》）！？。，、；：'
 
     for (let i = 0; i < text.length; i++) {
       const char = text[i]
@@ -875,13 +888,30 @@ ${enhancement}
       const metrics = ctx.measureText(testLine)
 
       if (metrics.width > maxWidth && currentLine) {
-        lines.push(currentLine)
-        currentLine = char
+        // 检查剩余文本，如果只剩1-2个字符且都是标点符号，强制放在当前行
+        const remainingText = text.substring(i)
+        const isOnlyPunctuationRemaining = remainingText.length <= 2 && 
+          remainingText.split('').every(c => punctuationChars.includes(c) || c === ' ')
+        
+        if (isOnlyPunctuationRemaining) {
+          // 强制将剩余标点符号加到当前行，即使超出宽度
+          currentLine = testLine + text.substring(i + 1)
+          lines.push(currentLine)
+          break
+        } else {
+          lines.push(currentLine)
+          currentLine = char
+        }
       } else {
         currentLine = testLine
       }
     }
-    if (currentLine) {
+    
+    if (currentLine && lines.length === 0) {
+      // 如果没有换行，直接添加
+      lines.push(currentLine)
+    } else if (currentLine && lines[lines.length - 1] !== currentLine) {
+      // 如果有剩余内容且未被添加，添加到行列表
       lines.push(currentLine)
     }
 

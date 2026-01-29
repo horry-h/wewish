@@ -45,7 +45,8 @@ Page({
   pressStartTime: 0,
   bgAudio: null as any,
   typewriterTimer: null as any,
-  pageFlipAudio: null as any, // 翻书音效
+  pageFlipAudio: null as any, // 翻书音效 A
+  pageFlipAudioB: null as any, // 翻书音效 B (备用)
   isVibrating: false, // 震动状态标志
 
   onLoad() {
@@ -58,17 +59,25 @@ Page({
       currentZenQuote: zenQuotes[0]
     })
 
-    // 初始化翻书音效
+    // 初始化两个翻书音效实例，用于交替播放实现无缝循环
+    // 音频已剪切为1.5秒，可以直接循环播放
     this.pageFlipAudio = wx.createInnerAudioContext()
     this.pageFlipAudio.src = '/assets/audio/page-flip.wav'
-    this.pageFlipAudio.loop = false // 不自动循环，手动控制
+    this.pageFlipAudio.loop = true // 直接使用系统循环
+    this.pageFlipAudio.obeyMuteSwitch = false
     
-    // 监听音频播放进度，实现无缝循环（只播放前1秒）
-    this.pageFlipAudio.onTimeUpdate(() => {
-      if (this.pageFlipAudio && this.pageFlipAudio.currentTime >= 1.2) {
-        // 达到1秒时立即重新开始，实现无缝循环
-        this.pageFlipAudio.seek(0)
-      }
+    // 备用音频实例（如果需要）
+    this.pageFlipAudioB = wx.createInnerAudioContext()
+    this.pageFlipAudioB.src = '/assets/audio/page-flip.wav'
+    this.pageFlipAudioB.loop = true
+    this.pageFlipAudioB.obeyMuteSwitch = false
+    
+    // 监听音频错误
+    this.pageFlipAudio.onError((res) => {
+      console.error('音频A播放错误:', res)
+    })
+    this.pageFlipAudioB.onError((res) => {
+      console.error('音频B播放错误:', res)
     })
   },
 
@@ -137,9 +146,8 @@ Page({
       selectedCategory: categoryToUse // 更新为实际使用的分类
     })
 
-    // 播放翻书音效（无缝循环，只播放前1秒）
+    // 播放翻书音效（音频已剪切为1.5秒，直接循环播放即可）
     if (this.pageFlipAudio) {
-      this.pageFlipAudio.seek(0) // 从头开始播放
       this.pageFlipAudio.play()
     }
 
@@ -287,10 +295,12 @@ Page({
       clearInterval(this.quoteTimer)
       this.quoteTimer = null
     }
-    
-    // 立即停止翻书音效
+
+    // 立即停止音频播放（确保立即停止）
     if (this.pageFlipAudio) {
       this.pageFlipAudio.stop()
+      // 双重保险：暂停后再停止
+      this.pageFlipAudio.pause()
     }
     
     // 清理背景音频
@@ -1045,6 +1055,9 @@ ${enhancement}
     // 销毁翻书音效
     if (this.pageFlipAudio) {
       this.pageFlipAudio.destroy()
+    }
+    if (this.pageFlipAudioB) {
+      this.pageFlipAudioB.destroy()
     }
   }
 })

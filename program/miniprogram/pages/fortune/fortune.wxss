@@ -1,0 +1,629 @@
+/* pages/fortune/fortune.wxss */
+.fortune-container {
+  width: 100%;
+  min-height: 100vh;
+  background: linear-gradient(180deg, #0a1929 0%, #1a2f4a 50%, #0a1929 100%);
+  position: relative;
+  overflow: hidden;
+}
+
+/* 状态栏 */
+.status-bar {
+  width: 100%;
+}
+
+/* 顶部栏 */
+.top-bar {
+  padding: 20rpx 40rpx;
+}
+
+.back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 10rpx;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 28rpx;
+  padding: 10rpx 20rpx;
+  border-radius: 50rpx;
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(10rpx);
+}
+
+.back-btn .icon {
+  font-size: 32rpx;
+}
+
+/* 标题区 */
+.title-section {
+  text-align: center;
+  margin-top: 40rpx;
+  margin-bottom: 80rpx;
+}
+
+.main-title {
+  font-size: 68rpx;
+  font-weight: bold;
+  margin-bottom: 16rpx;
+}
+
+.gradient-text {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.subtitle {
+  font-size: 28rpx;
+  color: rgba(255, 255, 255, 0.5);
+  letter-spacing: 4rpx;
+}
+
+/* 签筒容器 */
+.fortune-stick-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin-top: 120rpx;
+  position: relative;
+  padding: 40rpx;
+  transition: all 0.3s;
+}
+
+/* 交互状态 */
+.fortune-stick-container.interacting {
+  transform: scale(1.02);
+}
+
+/* 签筒盒子 */
+.stick-box {
+  position: relative;
+  z-index: 10;
+}
+
+/* 签筒视觉 */
+.stick-container-visual {
+  width: 400rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* 签筒顶部 */
+.stick-top {
+  width: 420rpx;
+  height: 40rpx;
+  background: linear-gradient(180deg, #8b4513 0%, #654321 100%);
+  border-radius: 200rpx 200rpx 0 0;
+  box-shadow: 0 8rpx 20rpx rgba(0, 0, 0, 0.4);
+  position: relative;
+  z-index: 2;
+}
+
+/* 签筒主体 */
+.stick-body {
+  width: 400rpx;
+  height: 500rpx;
+  background: linear-gradient(180deg, #d2691e 0%, #a0522d 50%, #8b4513 100%);
+  border-radius: 20rpx 20rpx 40rpx 40rpx;
+  box-shadow: 
+    inset 0 10rpx 30rpx rgba(255, 255, 255, 0.2),
+    inset 0 -10rpx 30rpx rgba(0, 0, 0, 0.3),
+    0 20rpx 50rpx rgba(0, 0, 0, 0.5);
+  position: relative;
+  overflow: visible;
+  display: flex;
+  justify-content: center;
+  padding-top: 40rpx;
+}
+
+/* 签筒孔洞 */
+.stick-hole {
+  width: 120rpx;
+  height: 120rpx;
+  background: radial-gradient(circle, #3d2817 0%, #1a0f0a 100%);
+  border-radius: 50%;
+  box-shadow: 
+    inset 0 0 20rpx rgba(0, 0, 0, 0.8),
+    0 8rpx 16rpx rgba(0, 0, 0, 0.4);
+  position: absolute;
+  top: 60rpx;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+/* 签条 */
+.fortune-stick {
+  position: absolute;
+  width: 80rpx;
+  height: 400rpx;
+  background: linear-gradient(180deg, #f5deb3 0%, #d2b48c 100%);
+  border-radius: 10rpx;
+  box-shadow: 0 8rpx 20rpx rgba(0, 0, 0, 0.3);
+  top: -50rpx;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 3;
+  opacity: 0;
+}
+
+.fortune-stick.dropping {
+  animation: stick-drop 1s ease-out forwards;
+}
+
+.fortune-stick.dropped {
+  animation: stick-flip 0.5s ease-out forwards;
+  animation-delay: 1s;
+}
+
+@keyframes stick-drop {
+  0% {
+    top: -50rpx;
+    opacity: 0;
+  }
+  20% {
+    opacity: 1;
+  }
+  100% {
+    top: 250rpx;
+    opacity: 1;
+  }
+}
+
+@keyframes stick-flip {
+  0% {
+    transform: translateX(-50%) scale(1) rotateZ(0deg);
+    opacity: 1;
+  }
+  50% {
+    transform: translateX(-50%) scale(1.5) rotateZ(180deg);
+    opacity: 0.8;
+  }
+  100% {
+    transform: translateX(-50%) scale(2) rotateZ(360deg);
+    opacity: 0;
+  }
+}
+
+.stick-text {
+  font-size: 48rpx;
+  font-weight: bold;
+  color: #8b4513;
+  writing-mode: vertical-rl;
+  text-orientation: upright;
+}
+
+/* 摇动动画 */
+.shake-animation {
+  animation: shake 0.15s ease-in-out infinite;
+}
+
+@keyframes shake {
+  0%, 100% {
+    transform: translateX(0) rotate(0deg);
+  }
+  25% {
+    transform: translateX(-15rpx) rotate(-5deg);
+  }
+  75% {
+    transform: translateX(15rpx) rotate(5deg);
+  }
+}
+
+/* 提示文字 */
+.hint-text {
+  margin-top: 80rpx;
+  font-size: 32rpx;
+  color: rgba(255, 255, 255, 0.8);
+  text-align: center;
+  transition: opacity 0.3s;
+}
+
+.hint-text.fade-out {
+  opacity: 0;
+}
+
+/* 呼吸灯效果 */
+.hint-text.breathing {
+  animation: breathing 3s ease-in-out infinite;
+}
+
+@keyframes breathing {
+  0%, 100% {
+    opacity: 0.4;
+  }
+  50% {
+    opacity: 0.8;
+  }
+}
+
+/* 今日已抽签提示 */
+.today-fortune-hint {
+  margin-top: 60rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 30rpx;
+}
+
+.hint-badge {
+  padding: 12rpx 40rpx;
+  background: linear-gradient(135deg, #ffd700 0%, #ff9800 100%);
+  color: #1a1a2e;
+  font-size: 28rpx;
+  font-weight: bold;
+  border-radius: 50rpx;
+  box-shadow: 0 8rpx 20rpx rgba(255, 215, 0, 0.4);
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 8rpx 20rpx rgba(255, 215, 0, 0.4);
+  }
+  50% {
+    transform: scale(1.05);
+    box-shadow: 0 12rpx 30rpx rgba(255, 215, 0, 0.6);
+  }
+}
+
+.hint-action {
+  display: flex;
+  align-items: center;
+  gap: 10rpx;
+  padding: 16rpx 40rpx;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 50rpx;
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 30rpx;
+  backdrop-filter: blur(10rpx);
+  border: 1rpx solid rgba(255, 255, 255, 0.2);
+  transition: all 0.3s;
+}
+
+.hint-action:active {
+  transform: scale(0.95);
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.hint-action .arrow {
+  font-size: 32rpx;
+  animation: arrow-move 1.5s ease-in-out infinite;
+}
+
+@keyframes arrow-move {
+  0%, 100% {
+    transform: translateX(0);
+  }
+  50% {
+    transform: translateX(10rpx);
+  }
+}
+
+/* ==================== 极简艺术纸签 (Wabi-sabi Style) ==================== */
+
+/* 结果遮罩 */
+.result-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1000;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.5s ease;
+}
+
+.result-modal.show {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* 纯净深色背景 */
+.zen-backdrop {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: #1A1A1A; /* 极简黑灰色 */
+  z-index: 1;
+}
+
+/* 纸签容器包裹层 */
+.lucky-card-wrapper {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  padding: 40rpx 0;
+}
+
+/* 核心纸签 (.lucky-card) */
+.lucky-card {
+  width: 88%;
+  max-width: 660rpx;
+  height: 82vh; /* 固定高度，确保一屏展示 */
+  background-color: #F8F5F0; /* 和纸米白色 */
+  /* 微弱和纸纹理模拟 */
+  background-image: radial-gradient(rgba(0,0,0,0.02) 1px, transparent 0);
+  background-size: 20px 20px;
+  border-radius: 4rpx; /* 几乎直角，极简 */
+  box-shadow: 0 40rpx 100rpx rgba(0, 0, 0, 0.25);
+  overflow: hidden;
+  position: relative;
+  transform: translateY(60rpx);
+  opacity: 0;
+  transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+  display: flex;
+  flex-direction: column;
+}
+
+.lucky-card.slide-up {
+  transform: translateY(0);
+  opacity: 1;
+}
+
+/* 顶部意象区 (Header Image) */
+.header-image-box {
+  width: 100%;
+  height: 32vh; /* 缩小顶部图片比例 */
+  position: relative;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.header-image {
+  width: 100%;
+  height: 100%;
+  display: block;
+  filter: sepia(10%) contrast(95%); /* 增加一点怀旧感 */
+}
+
+/* 图片羽化渐变 (Masking) */
+.image-feather-mask {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 120rpx;
+  background: linear-gradient(to bottom, transparent, #F8F5F0);
+  pointer-events: none;
+}
+
+/* 运势印章 (The Soul) */
+.soul-stamp {
+  position: absolute;
+  top: 28vh; /* 适配缩小的图片 */
+  right: 40rpx;
+  z-index: 20;
+  transform: rotate(15deg);
+  animation: stamp-drop 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) 0.5s both;
+}
+
+@keyframes stamp-drop {
+  from { opacity: 0; transform: rotate(15deg) scale(2); }
+  to { opacity: 1; transform: rotate(15deg) scale(1); }
+}
+
+.stamp-border {
+  padding: 8rpx 16rpx;
+  border: 4rpx solid #8B2222; /* 默认深红色 */
+  border-radius: 4rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(248, 245, 240, 0.95);
+  box-shadow: 0 4rpx 12rpx rgba(139, 34, 34, 0.2);
+}
+
+/* 运势等级颜色微调 */
+.soul-stamp.great .stamp-border { border-color: #D4AF37; } /* 大吉-金 */
+.soul-stamp.great .stamp-text { color: #D4AF37; }
+.soul-stamp.medium .stamp-border { border-color: #5A7552; } /* 中吉-绿 */
+.soul-stamp.medium .stamp-text { color: #5A7552; }
+.soul-stamp.guard .stamp-border { border-color: #666666; } /* 守-灰 */
+.soul-stamp.guard .stamp-text { color: #666666; }
+
+.stamp-text {
+  font-size: 32rpx; /* 稍微缩小 */
+  font-weight: bold;
+  color: #8B2222;
+  font-family: "STKaiti", "KaiTi", serif;
+}
+
+/* 纸签内容区 */
+.paper-content {
+  padding: 30rpx 50rpx 40rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1;
+  overflow: hidden; /* 内容区弹性展示 */
+  position: relative;
+}
+
+/* 垂直签文排版核心 (Zen Typography) */
+.verse-section {
+  flex: 1; /* 占据剩余主要空间 */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 40rpx;
+  width: 100%;
+  min-height: 300rpx;
+}
+
+.verse-flow {
+  writing-mode: vertical-rl;
+  text-orientation: upright;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+}
+
+.verse-line {
+  font-size: 34rpx; /* 适配缩小的空间 */
+  font-weight: 500;
+  color: #333333;
+  letter-spacing: 0.4em;
+  line-height: 2.2; /* 稍微缩小行距 */
+  font-family: "STKaiti", "PingFang SC", serif;
+  text-align: center;
+  white-space: pre-wrap; /* 自动换行保持垂直流 */
+}
+
+/* 极简宜忌区 */
+.lifestyle-advice {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+  margin-bottom: 40rpx;
+  flex-shrink: 0;
+}
+
+.advice-row {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+}
+
+.dot {
+  width: 10rpx;
+  height: 10rpx;
+  border-radius: 50%;
+}
+
+.dot.green { background: #52C41A; opacity: 0.6; }
+.dot.red { background: #F5222D; opacity: 0.6; }
+
+.advice-label {
+  font-size: 22rpx;
+  color: #999999;
+  font-weight: 600;
+  width: 36rpx;
+}
+
+.advice-val {
+  font-size: 24rpx;
+  color: #666666;
+  letter-spacing: 1rpx;
+}
+
+/* 书灵寄语 (Bottom) */
+.zen-message {
+  width: 100%;
+  padding-top: 30rpx;
+  border-top: 1rpx solid rgba(0,0,0,0.05);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12rpx;
+  flex-shrink: 0;
+}
+
+.message-guide {
+  font-size: 14rpx;
+  color: #CCCCCC;
+}
+
+.message-text {
+  font-size: 22rpx;
+  line-height: 1.6;
+  color: #888888;
+  text-align: center;
+  font-style: italic;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3; /* 限制寄语行数，确保不超出 */
+  overflow: hidden;
+}
+
+/* 底部操作 */
+.card-footer {
+  margin-top: 30rpx;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24rpx;
+  border-top: 1rpx solid rgba(0,0,0,0.03);
+  padding: 40rpx 0;
+  flex-shrink: 0;
+}
+
+.footer-primary-actions {
+  width: 100%;
+  display: flex;
+  padding: 0 40rpx;
+  gap: 20rpx;
+  box-sizing: border-box;
+}
+
+.footer-btn {
+  height: 84rpx;
+  border-radius: 42rpx;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28rpx;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  letter-spacing: 2rpx;
+  box-sizing: border-box;
+}
+
+.footer-btn.primary {
+  flex: 1; /* 确保两个主要按钮等长 */
+  background: linear-gradient(135deg, #d4a574 0%, #f4d5a6 100%);
+  color: #1A1A1A;
+  box-shadow: 0 8rpx 20rpx rgba(212, 165, 116, 0.2);
+  border: none;
+  padding: 0;
+}
+
+.footer-btn.close {
+  background: transparent;
+  color: #999999;
+  border: none;
+  font-size: 24rpx;
+  padding: 10rpx 40rpx;
+  height: auto;
+}
+
+.footer-btn:active {
+  transform: scale(0.95);
+  opacity: 0.9;
+}
+
+/* 响应式适配 */
+@media screen and (max-height: 750px) {
+  .lucky-card { height: 85vh; }
+  .header-image-box { height: 28vh; }
+  .soul-stamp { top: 24vh; }
+  .verse-section { margin-bottom: 30rpx; }
+  .lifestyle-advice { margin-bottom: 30rpx; }
+  .verse-line { font-size: 32rpx; }
+  .card-footer { padding: 20rpx 0; margin-top: 20rpx; }
+}
+
+@media screen and (max-height: 650px) {
+  .lucky-card { height: 90vh; }
+  .header-image-box { height: 25vh; }
+  .soul-stamp { top: 21vh; }
+  .message-text { -webkit-line-clamp: 2; }
+}

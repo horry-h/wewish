@@ -67,7 +67,7 @@ Page({
   // 分享配置
   onShareAppMessage() {
     return {
-      title: `${this.data.dailyFortune} | 心之解惑·每日一签`,
+      title: `${this.data.dailyFortune} | 当下有解·每日一签`,
       path: '/pages/daily/daily'
     }
   }

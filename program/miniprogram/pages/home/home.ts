@@ -1,4 +1,4 @@
-// pages/index/index.ts
+// pages/home/home.ts
 import { getDailyFortune, getLunarDate, getWeightedAnswer, zenQuotes } from '../../utils/answers-new'
 
 Page({
@@ -10,7 +10,6 @@ Page({
     isBreathing: true,
     userThought: '', // 用户输入的心声
     categories: [
-      { key: 'impulse', name: '当下的冲动', icon: '☄️' },
       { key: 'emotion', name: '关于感情', icon: '🍂' },
       { key: 'career', name: '工作与事业', icon: '🛤️' },
       { key: 'study', name: '学业与考试', icon: '📖' },
@@ -36,9 +35,7 @@ Page({
     showPosterModal: false,
     posterImagePath: '',
     currentBgImageUrl: '', // 当前使用的背景图URL
-    currentBgLocalPath: '', // 当前背景图的本地缓存路径
-    isRefreshingBg: false, // 是否正在刷新背景
-    showQuestion: false // 是否在海报上展示问题（默认不展示）
+    isRefreshingBg: false // 是否正在刷新背景
   },
 
   // 定时器
@@ -48,11 +45,7 @@ Page({
   pressStartTime: 0,
   bgAudio: null as any,
   typewriterTimer: null as any,
-  // WebAudio 相关
-  audioContext: null as any, // WebAudio 上下文
-  audioBuffer: null as any, // 音频缓冲区
-  audioSource: null as any, // 音频源节点
-  isPlayingPageFlip: false, // 是否正在播放翻页音效
+  pageFlipAudio: null as any, // 翻书音效
   isVibrating: false, // 震动状态标志
 
   onLoad() {
@@ -65,172 +58,30 @@ Page({
       currentZenQuote: zenQuotes[0]
     })
 
-    // 初始化 WebAudio 翻页音效
-    this.initPageFlipAudio()
-  },
-
-  // 初始化翻页音效（使用 WebAudio API）
-  initPageFlipAudio() {
-    try {
-      // 创建 WebAudio 上下文
-      this.audioContext = wx.createWebAudioContext()
-      
-      // 使用文件系统管理器读取本地音频
-      const fs = wx.getFileSystemManager()
-      
-      // 读取本地音频文件（base64或arraybuffer）
-      fs.readFile({
-        filePath: `${wx.env.USER_DATA_PATH}/../assets/audio/page-flip.wav`,
-        success: (res: any) => {
-          console.log('音频文件读取成功')
-          this.decodeAudioData(res.data)
-        },
-        fail: () => {
-          // 降级：尝试使用相对路径
-          console.log('尝试使用项目路径读取')
-          this.loadAudioFromProject()
-        }
-      })
-    } catch (error) {
-      console.error('WebAudio 初始化失败:', error)
-      console.log('将使用 InnerAudioContext 降级方案')
-      this.useFallbackAudio()
-    }
-  },
-
-  // 从项目路径加载音频
-  loadAudioFromProject() {
-    // 使用 wx.request 加载本地资源
-    // 注意：需要在小程序配置中将音频文件设置为不压缩
-    const audioPath = '/assets/audio/page-flip.wav'
+    // 初始化翻书音效
+    this.pageFlipAudio = wx.createInnerAudioContext()
+    this.pageFlipAudio.src = '/assets/audio/page-flip.wav'
+    this.pageFlipAudio.loop = false // 不自动循环，手动控制
     
-    // 直接使用 FileSystemManager 的同步方法
-    try {
-      const fs = wx.getFileSystemManager()
-      const res = fs.readFileSync(audioPath)
-      this.decodeAudioData(res)
-    } catch (error) {
-      console.error('同步读取失败:', error)
-      this.useFallbackAudio()
-    }
-  },
-
-  // 解码音频数据
-  decodeAudioData(arrayBuffer: ArrayBuffer) {
-    if (!this.audioContext) return
-    
-    this.audioContext.decodeAudioData(
-      arrayBuffer,
-      (buffer: any) => {
-        this.audioBuffer = buffer
-        console.log('翻页音效加载成功，时长:', buffer.duration, '秒')
-      },
-      (err: any) => {
-        console.error('音频解码失败:', err)
-        this.useFallbackAudio()
+    // 监听音频播放进度，实现无缝循环（只播放前1秒）
+    this.pageFlipAudio.onTimeUpdate(() => {
+      if (this.pageFlipAudio && this.pageFlipAudio.currentTime >= 1.2) {
+        // 达到1秒时立即重新开始，实现无缝循环
+        this.pageFlipAudio.seek(0)
       }
-    )
-  },
-
-  // 降级方案：使用 InnerAudioContext
-  useFallbackAudio() {
-    console.log('使用 InnerAudioContext 降级方案')
-    const audio = wx.createInnerAudioContext()
-    audio.src = '/assets/audio/page-flip.wav'
-    audio.loop = true
-    audio.obeyMuteSwitch = false
-    
-    // 保存到特殊字段，表示使用降级方案
-    this.audioContext = {
-      fallback: true,
-      audio: audio
-    }
-  },
-
-  // 播放翻页音效（循环播放）
-  playPageFlipSound() {
-    if (!this.audioContext) {
-      console.warn('音频上下文未准备好')
-      return
-    }
-
-    // 检查是否使用降级方案
-    if (this.audioContext.fallback) {
-      if (this.audioContext.audio && !this.isPlayingPageFlip) {
-        this.audioContext.audio.play()
-        this.isPlayingPageFlip = true
-      }
-      return
-    }
-
-    // 使用 WebAudio 方案
-    if (!this.audioBuffer) {
-      console.warn('音频缓冲区未准备好')
-      return
-    }
-
-    if (this.isPlayingPageFlip) {
-      return // 已在播放中
-    }
-
-    this.isPlayingPageFlip = true
-    this.createAndPlaySource()
-  },
-
-  // 创建并播放音频源
-  createAndPlaySource() {
-    if (!this.audioContext || !this.audioBuffer || this.audioContext.fallback) return
-
-    // 创建音频源节点
-    const source = this.audioContext.createBufferSource()
-    source.buffer = this.audioBuffer
-    
-    // 连接到目标（扬声器）
-    source.connect(this.audioContext.destination)
-    
-    // 监听播放结束，实现循环
-    source.onended = () => {
-      if (this.isPlayingPageFlip) {
-        // 继续播放下一次
-        this.createAndPlaySource()
-      }
-    }
-    
-    // 保存引用
-    this.audioSource = source
-    
-    // 开始播放
-    source.start()
-  },
-
-  // 停止翻页音效
-  stopPageFlipSound() {
-    this.isPlayingPageFlip = false
-
-    // 检查是否使用降级方案
-    if (this.audioContext && this.audioContext.fallback) {
-      if (this.audioContext.audio) {
-        this.audioContext.audio.stop()
-      }
-      return
-    }
-    
-    // WebAudio 方案
-    if (this.audioSource) {
-      try {
-        this.audioSource.stop()
-        this.audioSource = null
-      } catch (error) {
-        console.error('停止音频失败:', error)
-      }
-    }
+    })
   },
 
   // 点击每日一签卡片
   onDailyCardTap() {
     wx.vibrateShort({ type: 'light' })
-    wx.navigateTo({
-      url: '/pages/fortune/fortune'
+    // TODO: 待TypeScript编译后恢复
+    // wx.navigateTo({
+    //   url: '/pages/daily/daily'
+    // })
+    wx.showToast({
+      title: '每日一签(待编译)',
+      icon: 'none'
     })
   },
 
@@ -241,27 +92,6 @@ Page({
     
     this.setData({
       selectedCategory: key
-    })
-  },
-
-  // 重置选择
-  onResetTap() {
-    // 如果没有选择分类和输入内容，则不执行
-    if (!this.data.selectedCategory && !this.data.userThought) {
-      return
-    }
-    
-    wx.vibrateShort({ type: 'light' })
-    
-    this.setData({
-      selectedCategory: '',
-      userThought: ''
-    })
-    
-    wx.showToast({
-      title: '已重置',
-      icon: 'success',
-      duration: 1500
     })
   },
 
@@ -286,8 +116,11 @@ Page({
       selectedCategory: categoryToUse // 更新为实际使用的分类
     })
 
-    // 播放翻书音效（使用 WebAudio）
-    this.playPageFlipSound()
+    // 播放翻书音效（无缝循环，只播放前1秒）
+    if (this.pageFlipAudio) {
+      this.pageFlipAudio.seek(0) // 从头开始播放
+      this.pageFlipAudio.play()
+    }
 
     // 启动翻书动画
     this.startPageFlip()
@@ -433,15 +266,16 @@ Page({
       clearInterval(this.quoteTimer)
       this.quoteTimer = null
     }
-
-    // 停止翻页音效（WebAudio）
-    this.stopPageFlipSound()
+    
+    // 立即停止翻书音效
+    if (this.pageFlipAudio) {
+      this.pageFlipAudio.stop()
+    }
     
     // 清理背景音频
     if (this.bgAudio) {
       this.bgAudio.stop()
       this.bgAudio.destroy()
-      this.bgAudio = null
     }
   },
 
@@ -538,7 +372,6 @@ Page({
   async callHunyuanAPI(category: string, answer: string, userThought: string): Promise<string> {
     // 分类专属增强指令
     const categoryEnhancements: Record<string, string> = {
-      impulse: '请像一位鼓励冒险也守护安全的向导。侧重探讨"直觉的纯粹性"与"行动的意义"。不要给出复杂的说教，要通过隐喻来解析这股冲动是来自灵魂的渴望还是暂时的迷雾，鼓励用户在安全的前提下，勇敢地听从内心的声音。语气关键词：炽热、纯粹、守护。',
       emotion: '请像一位历经千帆的诗人，侧重探讨人与人之间的"共振"与"因缘"。强调自爱的底色，在解读答案时关注情绪的流动而非结果的得失。语气关键词：柔软、温润、留白。',
       career: '请像一位在山顶俯瞰的行者，侧重探讨"节奏"与"积累"。将事业比作远行，强调每一个弯道都有其意义，缓解用户对"成功"的焦虑，转化为对"成长"的关注。语气关键词：辽阔、坚定、清醒。',
       study: '请像一盏深夜书桌旁的微灯，侧重探讨"沉淀"与"静气"。将求学比作播种，鼓励用户接纳枯燥的时刻，强调智慧是时间的馈赠，给予最稳健的力量支撑。语气关键词：静谧、耐心、扎实。',
@@ -559,7 +392,7 @@ Page({
 
 # Style Requirements / 风格约束
 - **文风**：治愈、文艺、极简、具有呼吸感。参考村上春树的克制或三毛的感性。
-- **字数**：严格控制在 50 - 120 字之间，给用户留白思考。
+- **字数**：严格控制在 50 - 200 字之间，给用户留白思考。
 - **禁忌**：严禁使用"作为AI"、"根据我的分析"、"建议你"等机械化词汇。严禁说教，要用引导。`
 
     // 拼接分类专属增强指令
@@ -584,7 +417,6 @@ ${enhancement}
 
     // 分类名称映射
     const categoryNames: Record<string, string> = {
-      impulse: '当下的冲动',
       emotion: '关于感情',
       career: '工作与事业',
       study: '学业与考试',
@@ -611,7 +443,7 @@ ${enhancement}
     userPrompt += `
 
 请根据上述信息，以"书灵"的身份生成一段解读。记住：
-1. 字数严格控制在50-120字（禁止输出字数）
+1. 字数严格控制在50-200字
 2. 使用隐喻和诗化语言，不要直白说教
 3. 给用户心理上的温柔拥抱和治愈感
 4. 绝对不要使用"作为AI"等机械化词汇`
@@ -791,15 +623,10 @@ ${enhancement}
         let needNewBg = forceRefreshBg || !this.data.currentBgImageUrl
         
         if (needNewBg) {
-          // 需要获取新背景
           try {
             const bingUrl = await this.getBingDailyImage(useRandomBg)
             bgImagePath = await this.downloadImage(bingUrl)
-            // 同时缓存URL和本地路径
-            this.setData({ 
-              currentBgImageUrl: bingUrl,
-              currentBgLocalPath: bgImagePath
-            })
+            this.setData({ currentBgImageUrl: bingUrl })
           } catch (error) {
             console.warn('获取Bing壁纸失败，使用默认渐变背景:', error)
             // 网络图片失败时使用空字符串，后续绘制渐变背景
@@ -807,18 +634,11 @@ ${enhancement}
           }
         } else {
           // 使用缓存的背景图
-          if (this.data.currentBgLocalPath) {
-            // 优先使用已缓存的本地路径，避免重复下载
-            bgImagePath = this.data.currentBgLocalPath
-          } else if (this.data.currentBgImageUrl) {
-            // 如果只有URL没有本地路径，则下载并缓存
-            try {
-              bgImagePath = await this.downloadImage(this.data.currentBgImageUrl)
-              this.setData({ currentBgLocalPath: bgImagePath })
-            } catch (error) {
-              console.warn('加载缓存背景失败，使用默认渐变背景:', error)
-              bgImagePath = ''
-            }
+          try {
+            bgImagePath = await this.downloadImage(this.data.currentBgImageUrl)
+          } catch (error) {
+            console.warn('加载缓存背景失败，使用默认渐变背景:', error)
+            bgImagePath = ''
           }
         }
 
@@ -894,7 +714,7 @@ ${enhancement}
           // 4. 获取分类信息
           const category = this.data.categories.find(
             cat => cat.key === (this.data.selectedCategory || 'general')
-          ) || this.data.categories[7] // 更新索引：新增分类后，'此时此刻'变为第8个（索引7）
+          ) || this.data.categories[6]
 
           // 5. 内边距（让构图有呼吸感）
           const padding = 40
@@ -909,29 +729,7 @@ ${enhancement}
           ctx.fillStyle = '#ffffff'
           ctx.fillText(category.name, 375, 160 + padding)
 
-          // 动态计算Y轴位置
-          let currentY = 220 + padding
-
-          // 7. 用户问题（如果开启）- 完整显示，不截断
-          let questionHeight = 0
-          if (this.data.showQuestion && this.data.userThought) {
-            ctx.font = '28px sans-serif'
-            ctx.fillStyle = 'rgba(255, 255, 255, 0.8)'
-            ctx.textAlign = 'center'
-            
-            const questionText = `" ${this.data.userThought} "`
-            const questionLines = this.wrapText(ctx, questionText, 650)
-            
-            // 完整显示所有问题内容
-            questionLines.forEach((line, index) => {
-              ctx.fillText(line, 375, currentY + index * 40)
-            })
-            
-            questionHeight = questionLines.length * 40 + 30 // 问题高度 + 底部间距
-            currentY += questionHeight
-          }
-
-          // 8. 中间：核心答案（大字体 + 阴影）
+          // 7. 中间：核心答案（大字体 + 阴影）
           ctx.font = 'bold 68px sans-serif'
           ctx.fillStyle = '#ffffff'
           ctx.textAlign = 'center'
@@ -942,10 +740,7 @@ ${enhancement}
           
           // 使用智能换行绘制答案，避免单个标点符号单独成行
           const answerText = `「 ${this.data.resultAnswer} 」`
-          // 动态调整间距：如果有问题显示，减小间距
-          const answerTopMargin = this.data.showQuestion && this.data.userThought ? 40 : 80
-          const answerStartY = currentY + answerTopMargin
-          this.drawMultilineTextCentered(ctx, answerText, 375, answerStartY, 650, 80)
+          this.drawMultilineTextCentered(ctx, answerText, 375, 350, 650, 80)
           
           // 清除阴影
           ctx.shadowColor = 'transparent'
@@ -953,71 +748,42 @@ ${enhancement}
           ctx.shadowOffsetX = 0
           ctx.shadowOffsetY = 0
 
-          // 更新Y轴位置（估算答案占用的高度）
-          const answerLines = this.wrapText(ctx, answerText, 650)
-          currentY = answerStartY + answerLines.length * 80 + 10
-
-          // 9. 绘制装饰线 - 向上偏移10px避免遮挡文本
-          const decorLineY = currentY - 10
+          // 8. 绘制装饰线
           ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)'
           ctx.lineWidth = 2
           ctx.beginPath()
-          ctx.moveTo(150, decorLineY)
-          ctx.lineTo(600, decorLineY)
+          ctx.moveTo(150, 420)
+          ctx.lineTo(600, 420)
           ctx.stroke()
 
-          currentY += 10 // 调整后的间距
-
-          // 10. AI解读（自动换行，带内边距，动态计算高度）
+          // 9. AI解读（自动换行，带内边距）
           const analysis = this.data.fullAnalysis || '红了樱桃、绿了芭蕉，时间会告诉我们一切'
           ctx.font = '26px sans-serif'
           ctx.fillStyle = 'rgba(255, 255, 255, 0.95)'
           ctx.textAlign = 'center'
-          
-          // 计算AI解读的行数
-          const analysisLines = this.wrapText(ctx, analysis, 670)
-          const analysisLineHeight = 36
-          
-          // 底部信息固定区域：140px（从画布底部开始）
-          // 预留的安全间距：30px（AI解读与底部信息之间，缩小：60->30）
-          const bottomReserved = 140 + 30
-          const availableHeight = 1000 - currentY - bottomReserved
-          const maxAnalysisLines = Math.floor(availableHeight / analysisLineHeight)
-          
-          // 实际显示的行数（取实际行数和可用行数的最小值）
-          const displayLines = Math.min(analysisLines.length, maxAnalysisLines)
-          
-          // 绘制AI解读
-          analysisLines.slice(0, displayLines).forEach((line, index) => {
-            ctx.fillText(line, 375, currentY + index * analysisLineHeight)
-          })
-          
-          currentY += displayLines * analysisLineHeight + 30 // 减小间距：50->30
+          this.drawMultilineTextCentered(ctx, analysis, 375, 480, 670, 36)
 
-          // 11. 底部信息：固定在画布底部，与下边缘对齐
-          const bottomBaseY = 1000 - 140 // 画布高度 - 底部区域高度
-          
-          // 时间戳
-          ctx.font = '20px sans-serif'
-          ctx.fillStyle = 'rgba(255, 255, 255, 0.6)'
+          // 10. 底部：时间戳
+          ctx.font = '22px sans-serif'
+          ctx.fillStyle = 'rgba(255, 255, 255, 0.7)'
           ctx.textAlign = 'center'
-          ctx.fillText(`记录于 ${this.data.resultTimestamp}`, 375, bottomBaseY + 20)
+          ctx.fillText(`记录于 ${this.data.resultTimestamp}`, 375, 880)
 
-          // 12. 品牌水印
-          ctx.font = '18px sans-serif'
-          ctx.fillStyle = 'rgba(255, 255, 255, 0.45)'
-          ctx.fillText('—— 来自《当下有解》书灵', 375, bottomBaseY + 55)
+          // 11. 品牌水印
+          ctx.font = '20px sans-serif'
+          ctx.fillStyle = 'rgba(255, 255, 255, 0.5)'
+          ctx.fillText('—— 来自《当下有解》书灵', 375, 920)
 
-          // 13. 小程序码占位符（圆形 + 提示）
-          ctx.fillStyle = 'rgba(255, 255, 255, 0.12)'
+          // 12. 小程序码占位符（圆形 + 提示）
+          ctx.fillStyle = 'rgba(255, 255, 255, 0.15)'
           ctx.beginPath()
-          ctx.arc(120, bottomBaseY + 95, 38, 0, 2 * Math.PI)
+          ctx.arc(120, 950, 40, 0, 2 * Math.PI)
           ctx.fill()
 
-          ctx.font = '16px sans-serif'
-          ctx.fillStyle = 'rgba(255, 255, 255, 0.5)'
+          ctx.font = '18px sans-serif'
+          ctx.fillStyle = 'rgba(255, 255, 255, 0.6)'
           ctx.textAlign = 'left'
-          ctx.fillText('扫码体验', 175, bottomBaseY + 105)
+          ctx.fillText('扫码体验', 180, 960)
 
           // 13. 导出图片
           setTimeout(() => {
@@ -1155,52 +921,11 @@ ${enhancement}
     })
   },
 
-  // 文本换行辅助函数（返回行数组，用于计算高度）
-  wrapText(ctx: any, text: string, maxWidth: number): string[] {
-    const lines: string[] = []
-    
-    // 首先按换行符分割文本
-    const paragraphs = text.split('\n')
-    
-    // 对每个段落进行宽度换行处理
-    paragraphs.forEach((paragraph) => {
-      let currentLine = ''
-      
-      for (let i = 0; i < paragraph.length; i++) {
-        const char = paragraph[i]
-        const testLine = currentLine + char
-        const metrics = ctx.measureText(testLine)
-        
-        if (metrics.width > maxWidth && currentLine) {
-          lines.push(currentLine)
-          currentLine = char
-        } else {
-          currentLine = testLine
-        }
-      }
-      
-      // 每个段落结束后，添加当前行（即使为空，也保留空行效果）
-      lines.push(currentLine)
-    })
-
-    return lines
-  },
-
   // 关闭海报弹窗
   onClosePosterModal() {
     this.setData({
       showPosterModal: false
     })
-  },
-
-  // 切换是否展示问题
-  onToggleShowQuestion(e: any) {
-    const showQuestion = e.detail.value
-    this.setData({ showQuestion })
-    
-    // 立即重新绘制海报，实时预览效果（使用当前背景，不刷新）
-    wx.vibrateShort({ type: 'light' })
-    this.drawPoster(false, false) // forceRefreshBg=false 使用缓存背景
   },
 
   // 保存海报到相册
@@ -1276,7 +1001,7 @@ ${enhancement}
     // 不自动关闭弹窗,让用户可以继续操作
     return {
       title: `我抽到了答案：「${this.data.resultAnswer}」，你也来听听书灵的解读`,
-      path: '/pages/index/index',
+      path: '/pages/home/home',
       imageUrl: this.data.posterImagePath || ''
     }
   },
@@ -1296,14 +1021,9 @@ ${enhancement}
     if (this.typewriterTimer) {
       clearInterval(this.typewriterTimer)
     }
-    // 销毁 WebAudio 上下文
-    if (this.audioContext) {
-      try {
-        this.audioContext.close()
-        this.audioContext = null
-      } catch (error) {
-        console.error('关闭音频上下文失败:', error)
-      }
+    // 销毁翻书音效
+    if (this.pageFlipAudio) {
+      this.pageFlipAudio.destroy()
     }
   }
 })

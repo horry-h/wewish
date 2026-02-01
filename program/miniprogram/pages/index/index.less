@@ -16,9 +16,10 @@
 .top-area {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-end; /* 改为底部对齐，让按钮往下移 */
   padding: 40rpx 0 32rpx;
   flex-shrink: 0;
+  min-height: 132rpx; /* 增加最小高度，确保按钮有足够空间下移 */
 }
 
 .header {
@@ -51,6 +52,7 @@
   border: 2rpx solid rgba(255, 255, 255, 0.15);
   backdrop-filter: blur(10rpx);
   transition: all 0.3s ease;
+  margin-bottom: 0rpx; /* 增加底部间距，使按钮与标题底部对齐时更自然 */
 }
 
 .daily-btn:active {

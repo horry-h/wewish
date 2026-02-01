@@ -7,7 +7,7 @@
   <view class="top-area">
     <!-- 左侧标题 -->
     <view class="header">
-      <view class="title gradient-text">心之解惑</view>
+      <view class="title gradient-text">当下有解</view>
       <view class="subtitle">Answer Book</view>
     </view>
 

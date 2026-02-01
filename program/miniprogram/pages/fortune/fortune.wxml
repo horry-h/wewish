@@ -1,0 +1,130 @@
+<!--pages/fortune/fortune.wxml-->
+<view class="fortune-container">
+  <!-- 状态栏占位 -->
+  <view class="status-bar" style="height: {{statusBarHeight}}px;"></view>
+
+  <!-- 顶部返回按钮 -->
+  <view class="top-bar">
+    <view class="back-btn" bindtap="onBack">
+      <text class="icon">←</text>
+      <text>返回</text>
+    </view>
+  </view>
+
+  <!-- 标题区 -->
+  <view class="title-section">
+    <view class="main-title gradient-text" bindlongpress="onLongPressTitle">今日一签</view>
+    <view class="subtitle">Daily Fortune</view>
+  </view>
+
+  <!-- 签筒区域 -->
+  <view 
+    class="fortune-stick-container {{isInteracting ? 'interacting' : ''}}" 
+    bindtouchstart="onTouchStart"
+    bindtouchend="onTouchEnd"
+    bindtouchcancel="onTouchEnd"
+  >
+    <!-- 签筒图标 -->
+    <view class="stick-box {{isInteracting ? 'shake-animation' : ''}}">
+      <view class="stick-container-visual">
+        <view class="stick-top"></view>
+        <view class="stick-body">
+          <view class="stick-hole"></view>
+          <!-- 签条（掉落动画） -->
+          <view class="fortune-stick {{stickState}}" wx:if="{{stickState !== 'hidden'}}">
+            <view class="stick-text">籤</view>
+          </view>
+        </view>
+      </view>
+    </view>
+
+  <!-- 提示文字（呼吸灯效果） -->
+  <view class="hint-text {{isInteracting ? 'fade-out' : 'breathing'}}">
+    {{hintText}}
+  </view>
+
+  <!-- 今日已抽签提示 -->
+  <view class="today-fortune-hint" wx:if="{{fortuneData && !showResult && hasClosedResult}}">
+    <view class="hint-badge">今日已抽</view>
+    <view class="hint-action" bindtap="showFortuneResult">
+      <text>点击查看</text>
+      <text class="arrow">→</text>
+    </view>
+  </view>
+  </view>
+
+  <!-- 结果弹窗 - 极简艺术纸签 -->
+  <view class="result-modal {{showResult ? 'show' : ''}}" wx:if="{{fortuneData}}">
+    <!-- 纯净深色背景 -->
+    <view class="zen-backdrop" bindtap="onCloseResult"></view>
+
+    <!-- 艺术纸签容器 -->
+    <view class="lucky-card-wrapper" bindtap="onCloseResult">
+      <view class="lucky-card {{showResult ? 'slide-up' : ''}}" catchtap="onPreventDefault">
+        <!-- 顶部意象区 -->
+        <view class="header-image-box" wx:if="{{backgroundImage}}">
+          <image 
+            src="{{backgroundImage}}" 
+            class="header-image" 
+            mode="aspectFill"
+          ></image>
+          <!-- 图片羽化渐变层 -->
+          <view class="image-feather-mask"></view>
+        </view>
+
+        <!-- 运势印章（跨界放置） -->
+        <view class="soul-stamp {{fortuneData.level}}">
+          <view class="stamp-border">
+            <text class="stamp-text">{{fortuneData.levelText}}</text>
+          </view>
+        </view>
+
+        <!-- 纸签内容区 -->
+        <view class="paper-content">
+          <!-- 垂直签文排版核心 -->
+          <view class="verse-section">
+            <view class="verse-flow">
+              <text class="verse-line" wx:for="{{verseLines}}" wx:key="*this">{{item}}</text>
+            </view>
+          </view>
+
+          <!-- 极简宜/忌 -->
+          <view class="lifestyle-advice">
+            <view class="advice-row">
+              <view class="dot green"></view>
+              <text class="advice-label">宜</text>
+              <text class="advice-val">{{fortuneData.suitable}}</text>
+            </view>
+            <view class="advice-row">
+              <view class="dot red"></view>
+              <text class="advice-label">忌</text>
+              <text class="advice-val">{{fortuneData.unsuitable}}</text>
+            </view>
+          </view>
+
+          <!-- 书灵寄语 -->
+          <view class="zen-message">
+            <view class="message-guide">◆</view>
+            <view class="message-text">{{displayedMessage}}</view>
+          </view>
+
+          <!-- 底部操作 -->
+          <view class="card-footer">
+            <view class="footer-primary-actions">
+              <view class="footer-btn primary" bindtap="onSaveFortune">保存灵签</view>
+              <button class="footer-btn primary" open-type="share" style="margin: 0; line-height: inherit; font-weight: 500;">分享缘分</button>
+            </view>
+            <view class="footer-btn close" bindtap="onCloseResult">收起签文</view>
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 离屏Canvas -->
+  <canvas 
+    type="2d" 
+    id="fortuneCanvas" 
+    style="position: fixed; left: -9999px; top: -9999px; width: 375px; height: 667px;"
+  ></canvas>
+</view>

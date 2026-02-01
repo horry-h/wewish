@@ -2,9 +2,24 @@
 .fortune-container {
   width: 100%;
   min-height: 100vh;
-  background: linear-gradient(180deg, #0a1929 0%, #1a2f4a 50%, #0a1929 100%);
+  /* 优化背景：深邃的午夜紫蓝渐变，增加高级感 */
+  background: linear-gradient(180deg, #050a14 0%, #0d1428 40%, #151025 100%);
   position: relative;
   overflow: hidden;
+}
+
+/* 增加背景环境光，增强空间感 */
+.fortune-container::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 120vw;
+  height: 120vw;
+  transform: translate(-50%, -50%);
+  background: radial-gradient(circle, rgba(139, 34, 34, 0.08) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: 0;
 }
 
 /* 状态栏 */
@@ -47,15 +62,18 @@
 }
 
 .gradient-text {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  /* 优化标题色彩：采用更有质感的流金渐变，呼应签筒金边 */
+  background: linear-gradient(135deg, #fceabb 0%, #f8b500 50%, #fceabb 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
+  text-shadow: 0 4rpx 10rpx rgba(248, 181, 0, 0.2);
 }
 
 .subtitle {
   font-size: 28rpx;
-  color: rgba(255, 255, 255, 0.5);
+  /* 优化副标题：采用淡雅的银紫色 */
+  color: rgba(214, 211, 234, 0.5);
   letter-spacing: 4rpx;
 }
 
@@ -145,9 +163,13 @@
   position: relative;
   width: 260rpx;
   height: 320rpx;
-  background: linear-gradient(180deg, #E60012 0%, #C00000 100%);
+  /* 优化红：采用经典的朱砂红渐变，增加色彩深度 */
+  background: linear-gradient(180deg, #d32f2f 0%, #b71c1c 100%);
   border-radius: 40rpx 40rpx 80rpx 80rpx;
-  box-shadow: 0 20rpx 40rpx rgba(0,0,0,0.3), inset 0 0 30rpx rgba(255,255,255,0.1);
+  /* 增加柔和的外阴影与光晕，使物体“嵌入”背景 */
+  box-shadow: 0 20rpx 60rpx rgba(0,0,0,0.4), 
+              0 0 40rpx rgba(183, 28, 28, 0.1),
+              inset 0 4rpx 20rpx rgba(255,255,255,0.1);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -160,7 +182,7 @@
   top: 10rpx;
   width: 70rpx;
   height: 70rpx;
-  background: #E60012;
+  background: #b71c1c;
   z-index: -1;
 }
 
@@ -179,10 +201,11 @@
 .gold-rim-top {
   width: 110%;
   height: 44rpx;
-  background: linear-gradient(180deg, #FFD700 0%, #DBA800 100%);
+  /* 优化金：采用香槟金/暗金效果，避免廉价黄 */
+  background: linear-gradient(180deg, #e0c068 0%, #b8860b 100%);
   border-radius: 22rpx;
   margin-top: -10rpx;
-  box-shadow: 0 4rpx 10rpx rgba(0,0,0,0.2);
+  box-shadow: 0 6rpx 12rpx rgba(0,0,0,0.3);
   z-index: 3;
 }
 
@@ -221,14 +244,15 @@
   margin-top: 75rpx;
   width: 80rpx;
   height: 54rpx;
-  background: #FF8A8A;
+  /* 优化粉：更温润的浅肉粉色 */
+  background: #ffabab;
   border-radius: 30rpx;
   display: flex;
   justify-content: center;
   gap: 12rpx;
   align-items: center;
-  border: 4rpx solid #B22222;
-  box-shadow: 0 4rpx 8rpx rgba(0,0,0,0.1);
+  border: 4rpx solid #a41a1a;
+  box-shadow: 0 4rpx 10rpx rgba(0,0,0,0.15);
 }
 
 .nostril {
@@ -241,7 +265,7 @@
 .pig-mouth {
   width: 24rpx;
   height: 12rpx;
-  background: #B22222;
+  background: #a41a1a;
   border-radius: 0 0 12rpx 12rpx;
   margin-top: 4rpx;
 }
@@ -251,18 +275,19 @@
   bottom: 30rpx;
   width: 80rpx;
   height: 80rpx;
-  background: #B22222;
+  background: #8e1a1a;
   transform: rotate(45deg);
-  border: 2rpx solid #FFD700;
+  /* 标签边框同步金质感 */
+  border: 2rpx solid #e0c068;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 4rpx 10rpx rgba(0,0,0,0.3);
+  box-shadow: 0 6rpx 15rpx rgba(0,0,0,0.4);
 }
 
 .tag-diamond text {
   transform: rotate(-45deg);
-  color: #FFD700;
+  color: #e0c068;
   font-size: 40rpx;
   font-weight: bold;
 }
@@ -282,8 +307,9 @@
   position: absolute;
   width: 50rpx;
   height: 240rpx;
-  background: #FF7F7F;
-  border: 2rpx solid #B22222;
+  /* 签木优化：采用略带木质感的暖红调 */
+  background: #f19a9a;
+  border: 2rpx solid #8e1a1a;
   border-radius: 4rpx 4rpx 0 0;
   display: flex;
   justify-content: center;
@@ -295,15 +321,15 @@
 .a-stick text {
   writing-mode: vertical-rl;
   font-size: 20rpx;
-  color: #B22222;
+  color: #8e1a1a;
   font-weight: bold;
 }
 
-.a-stick.s1 { transform: rotate(-25deg) translateX(-60rpx); background: #FF9999; }
-.a-stick.s2 { transform: rotate(-12deg) translateX(-30rpx); background: #FF8888; }
-.a-stick.s3 { transform: rotate(0deg); background: #FF7F7F; z-index: 2; }
-.a-stick.s4 { transform: rotate(12deg) translateX(30rpx); background: #FF8888; }
-.a-stick.s5 { transform: rotate(25deg) translateX(60rpx); background: #FF9999; }
+.a-stick.s1 { transform: rotate(-25deg) translateX(-60rpx); background: #f2b1b1; }
+.a-stick.s2 { transform: rotate(-12deg) translateX(-30rpx); background: #f19a9a; }
+.a-stick.s3 { transform: rotate(0deg); background: #ec8b8b; z-index: 2; }
+.a-stick.s4 { transform: rotate(12deg) translateX(30rpx); background: #f19a9a; }
+.a-stick.s5 { transform: rotate(25deg) translateX(60rpx); background: #f2b1b1; }
 
 /* 掉落签条适配 */
 .divine-stick {
@@ -337,14 +363,14 @@
 .flat-stick {
   width: 80rpx !important;
   height: 320rpx !important;
-  background: #FF7F7F !important;
-  border: 4rpx solid #B22222 !important;
+  background: #ec8b8b !important;
+  border: 4rpx solid #8e1a1a !important;
   clip-path: polygon(0% 15%, 50% 0%, 100% 15%, 100% 100%, 0% 100%);
   padding: 20rpx 0 !important;
   display: flex;
   flex-direction: column;
   align-items: center;
-  box-shadow: 0 10rpx 30rpx rgba(178, 34, 34, 0.3);
+  box-shadow: 0 10rpx 30rpx rgba(142, 26, 26, 0.3);
 }
 
 .stick-head {
@@ -353,7 +379,7 @@
 
 .divine-stick .paper-text {
   font-size: 40rpx;
-  color: #B22222;
+  color: #8e1a1a;
   font-weight: bold;
   writing-mode: vertical-rl;
   margin-top: 20rpx;
@@ -425,13 +451,15 @@
   align-items: center;
   gap: 16rpx;
   padding: 16rpx 40rpx;
-  background: rgba(230, 0, 18, 0.1);
-  border: 2rpx solid rgba(230, 0, 18, 0.3);
+  /* 优化按钮：深红底色搭配金边，更有仪式感 */
+  background: rgba(183, 28, 28, 0.15);
+  border: 1rpx solid rgba(224, 192, 104, 0.3);
   border-radius: 50rpx;
-  color: #FFB7C5;
+  color: #e0c068;
   font-size: 28rpx;
   backdrop-filter: blur(5px);
   animation: tag-float 3s ease-in-out infinite;
+  box-shadow: 0 4rpx 15rpx rgba(0,0,0,0.2);
 }
 
 @keyframes tag-float {

@@ -328,7 +328,7 @@ Page({
   onInteractionStart() {
     this.setData({
       isInteracting: true,
-      hintText: '' 
+      hintText: '凝神... 签筒微动' 
     })
     this.playShakeSound()
   },
@@ -413,17 +413,18 @@ Page({
     this.stopShakeSound()
     this.setData({
       isInteracting: false,
-      hintText: ''
+      hintText: '缘分已至...'
     })
     wx.vibrateShort({ type: 'heavy' })
     this.setData({ stickState: 'dropping' })
 
+    // 匹配 CSS 中的 divine-drop (1.2s) 和 divine-reveal (0.6s)
     setTimeout(() => {
       this.setData({ stickState: 'dropped' })
       setTimeout(() => {
         this.showFortuneResult()
-      }, 500)
-    }, 1000)
+      }, 600) // 等待 reveal 动画结束
+    }, 1200) // 等待 drop 动画结束
   },
 
   // 处理签语为显示格式

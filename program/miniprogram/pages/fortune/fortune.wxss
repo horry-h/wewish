@@ -59,250 +59,394 @@
   letter-spacing: 4rpx;
 }
 
-/* 签筒容器 */
-.fortune-stick-container {
+/* ==================== 动画风日式抽签筒 ==================== */
+.shrine-section {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  margin-top: 120rpx;
+  margin-top: 40rpx;
   position: relative;
-  padding: 40rpx;
-  transition: all 0.3s;
+  min-height: 800rpx;
+  width: 100%;
 }
 
-/* 交互状态 */
-.fortune-stick-container.interacting {
-  transform: scale(1.02);
+/* 樱花粒子动画 */
+.sakura-particles {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
 }
 
-/* 签筒盒子 */
-.stick-box {
+.sakura {
+  position: absolute;
+  width: 30rpx;
+  height: 30rpx;
+  background: #ffb7c5;
+  border-radius: 50% 0 50% 50%;
+  filter: drop-shadow(0 0 10rpx rgba(255, 183, 197, 0.4));
+  opacity: 0.6;
+}
+
+.sakura.s1 { left: 10%; top: -10%; animation: sakura-fall 8s linear infinite; }
+.sakura.s2 { right: 20%; top: -20%; animation: sakura-fall 10s linear infinite 2s; transform: rotate(45deg); }
+.sakura.s3 { left: 40%; top: -15%; animation: sakura-fall 7s linear infinite 1s; }
+.sakura.s4 { right: 5%; top: -25%; animation: sakura-fall 12s linear infinite 3s; }
+
+@keyframes sakura-fall {
+  0% { transform: translateY(0) rotate(0deg); opacity: 0; }
+  10% { opacity: 0.6; }
+  90% { opacity: 0.6; }
+  100% { transform: translateY(1000rpx) rotate(360deg); opacity: 0; }
+}
+
+/* 六角签筒容器 */
+.omikuji-box {
   position: relative;
+  width: 300rpx;
+  height: 460rpx;
   z-index: 10;
+  perspective: 1200rpx;
 }
 
-/* 签筒视觉 */
-.stick-container-visual {
-  width: 400rpx;
+.omikuji-box.shaking {
+  animation: anime-shake 0.15s infinite;
+}
+
+@keyframes anime-shake {
+  0%, 100% { transform: rotate(0deg) scale(1); filter: contrast(1.1); }
+  50% { transform: rotate(2deg) scale(1.02); filter: contrast(1.2); }
+}
+
+.bucket-glow {
+  position: absolute;
+  width: 120%;
+  height: 120%;
+  left: -10%;
+  top: -10%;
+  background: radial-gradient(circle, rgba(230, 0, 18, 0.15) 0%, transparent 70%);
+  filter: blur(20px);
+  z-index: -1;
+}
+
+/* 萌系猪猪签筒实现 */
+.piggy-bucket {
+  position: relative;
+  width: 100%;
+  height: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: flex-end;
 }
 
-/* 签筒顶部 */
-.stick-top {
-  width: 420rpx;
-  height: 40rpx;
-  background: linear-gradient(180deg, #8b4513 0%, #654321 100%);
-  border-radius: 200rpx 200rpx 0 0;
-  box-shadow: 0 8rpx 20rpx rgba(0, 0, 0, 0.4);
+.bucket-body {
   position: relative;
+  width: 260rpx;
+  height: 320rpx;
+  background: linear-gradient(180deg, #E60012 0%, #C00000 100%);
+  border-radius: 40rpx 40rpx 80rpx 80rpx;
+  box-shadow: 0 20rpx 40rpx rgba(0,0,0,0.3), inset 0 0 30rpx rgba(255,255,255,0.1);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   z-index: 2;
+  overflow: visible;
 }
 
-/* 签筒主体 */
-.stick-body {
-  width: 400rpx;
-  height: 500rpx;
-  background: linear-gradient(180deg, #d2691e 0%, #a0522d 50%, #8b4513 100%);
-  border-radius: 20rpx 20rpx 40rpx 40rpx;
-  box-shadow: 
-    inset 0 10rpx 30rpx rgba(255, 255, 255, 0.2),
-    inset 0 -10rpx 30rpx rgba(0, 0, 0, 0.3),
-    0 20rpx 50rpx rgba(0, 0, 0, 0.5);
+.pig-ear {
+  position: absolute;
+  top: 10rpx;
+  width: 70rpx;
+  height: 70rpx;
+  background: #E60012;
+  z-index: -1;
+}
+
+.pig-ear.left {
+  left: -20rpx;
+  border-radius: 40rpx 0 0 40rpx;
+  transform: rotate(-10deg);
+}
+
+.pig-ear.right {
+  right: -20rpx;
+  border-radius: 0 40rpx 40rpx 0;
+  transform: rotate(10deg);
+}
+
+.gold-rim-top {
+  width: 110%;
+  height: 44rpx;
+  background: linear-gradient(180deg, #FFD700 0%, #DBA800 100%);
+  border-radius: 22rpx;
+  margin-top: -10rpx;
+  box-shadow: 0 4rpx 10rpx rgba(0,0,0,0.2);
+  z-index: 3;
+}
+
+.pig-face {
+  margin-top: 30rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   position: relative;
-  overflow: visible;
+  width: 100%;
+}
+
+.pig-eye {
+  position: absolute;
+  top: 40rpx;
+  width: 44rpx;
+  height: 44rpx;
+  background: #000;
+  border-radius: 50%;
+}
+
+.pig-eye.left { left: 55rpx; }
+.pig-eye.right { right: 55rpx; }
+
+.eye-sparkle {
+  position: absolute;
+  top: 8rpx;
+  left: 8rpx;
+  width: 14rpx;
+  height: 14rpx;
+  background: #fff;
+  border-radius: 50%;
+}
+
+.pig-nose {
+  margin-top: 75rpx;
+  width: 80rpx;
+  height: 54rpx;
+  background: #FF8A8A;
+  border-radius: 30rpx;
   display: flex;
   justify-content: center;
-  padding-top: 40rpx;
+  gap: 12rpx;
+  align-items: center;
+  border: 4rpx solid #B22222;
+  box-shadow: 0 4rpx 8rpx rgba(0,0,0,0.1);
 }
 
-/* 签筒孔洞 */
-.stick-hole {
-  width: 120rpx;
-  height: 120rpx;
-  background: radial-gradient(circle, #3d2817 0%, #1a0f0a 100%);
+.nostril {
+  width: 12rpx;
+  height: 12rpx;
+  background: #800000;
   border-radius: 50%;
-  box-shadow: 
-    inset 0 0 20rpx rgba(0, 0, 0, 0.8),
-    0 8rpx 16rpx rgba(0, 0, 0, 0.4);
-  position: absolute;
-  top: 60rpx;
-  left: 50%;
-  transform: translateX(-50%);
 }
 
-/* 签条 */
-.fortune-stick {
+.pig-mouth {
+  width: 24rpx;
+  height: 12rpx;
+  background: #B22222;
+  border-radius: 0 0 12rpx 12rpx;
+  margin-top: 4rpx;
+}
+
+.tag-diamond {
   position: absolute;
+  bottom: 30rpx;
   width: 80rpx;
-  height: 400rpx;
-  background: linear-gradient(180deg, #f5deb3 0%, #d2b48c 100%);
-  border-radius: 10rpx;
-  box-shadow: 0 8rpx 20rpx rgba(0, 0, 0, 0.3);
-  top: -50rpx;
-  left: 50%;
-  transform: translateX(-50%);
+  height: 80rpx;
+  background: #B22222;
+  transform: rotate(45deg);
+  border: 2rpx solid #FFD700;
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 3;
-  opacity: 0;
+  box-shadow: 0 4rpx 10rpx rgba(0,0,0,0.3);
 }
 
-.fortune-stick.dropping {
-  animation: stick-drop 1s ease-out forwards;
-}
-
-.fortune-stick.dropped {
-  animation: stick-flip 0.5s ease-out forwards;
-  animation-delay: 1s;
-}
-
-@keyframes stick-drop {
-  0% {
-    top: -50rpx;
-    opacity: 0;
-  }
-  20% {
-    opacity: 1;
-  }
-  100% {
-    top: 250rpx;
-    opacity: 1;
-  }
-}
-
-@keyframes stick-flip {
-  0% {
-    transform: translateX(-50%) scale(1) rotateZ(0deg);
-    opacity: 1;
-  }
-  50% {
-    transform: translateX(-50%) scale(1.5) rotateZ(180deg);
-    opacity: 0.8;
-  }
-  100% {
-    transform: translateX(-50%) scale(2) rotateZ(360deg);
-    opacity: 0;
-  }
-}
-
-.stick-text {
-  font-size: 48rpx;
+.tag-diamond text {
+  transform: rotate(-45deg);
+  color: #FFD700;
+  font-size: 40rpx;
   font-weight: bold;
-  color: #8b4513;
+}
+
+/* 扁平化签条样式 */
+.anime-sticks {
+  position: absolute;
+  top: -60rpx;
+  width: 220rpx;
+  height: 200rpx;
+  display: flex;
+  justify-content: center;
+  z-index: -1;
+}
+
+.a-stick {
+  position: absolute;
+  width: 50rpx;
+  height: 240rpx;
+  background: #FF7F7F;
+  border: 2rpx solid #B22222;
+  border-radius: 4rpx 4rpx 0 0;
+  display: flex;
+  justify-content: center;
+  padding-top: 10rpx;
+  transform-origin: bottom center;
+  clip-path: polygon(0% 15%, 50% 0%, 100% 15%, 100% 100%, 0% 100%);
+}
+
+.a-stick text {
   writing-mode: vertical-rl;
-  text-orientation: upright;
+  font-size: 20rpx;
+  color: #B22222;
+  font-weight: bold;
 }
 
-/* 摇动动画 */
-.shake-animation {
-  animation: shake 0.15s ease-in-out infinite;
-}
+.a-stick.s1 { transform: rotate(-25deg) translateX(-60rpx); background: #FF9999; }
+.a-stick.s2 { transform: rotate(-12deg) translateX(-30rpx); background: #FF8888; }
+.a-stick.s3 { transform: rotate(0deg); background: #FF7F7F; z-index: 2; }
+.a-stick.s4 { transform: rotate(12deg) translateX(30rpx); background: #FF8888; }
+.a-stick.s5 { transform: rotate(25deg) translateX(60rpx); background: #FF9999; }
 
-@keyframes shake {
-  0%, 100% {
-    transform: translateX(0) rotate(0deg);
-  }
-  25% {
-    transform: translateX(-15rpx) rotate(-5deg);
-  }
-  75% {
-    transform: translateX(15rpx) rotate(5deg);
-  }
-}
-
-/* 提示文字 */
-.hint-text {
-  margin-top: 80rpx;
-  font-size: 32rpx;
-  color: rgba(255, 255, 255, 0.8);
-  text-align: center;
-  transition: opacity 0.3s;
-}
-
-.hint-text.fade-out {
+/* 掉落签条适配 */
+.divine-stick {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  margin-left: -40rpx;
+  width: 80rpx;
+  height: 320rpx;
+  z-index: 100;
+  pointer-events: none;
   opacity: 0;
+  will-change: transform, opacity;
 }
 
-/* 呼吸灯效果 */
-.hint-text.breathing {
-  animation: breathing 3s ease-in-out infinite;
+.divine-stick.dropping {
+  animation: divine-drop 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
 }
 
-@keyframes breathing {
-  0%, 100% {
-    opacity: 0.4;
-  }
-  50% {
-    opacity: 0.8;
-  }
+.divine-stick.landing {
+  opacity: 1;
+  transform: translateY(300rpx) rotate(0deg);
 }
 
-/* 今日已抽签提示 */
-.today-fortune-hint {
+@keyframes divine-drop {
+  0% { transform: translateY(-200rpx) rotate(-15deg); opacity: 0; }
+  30% { opacity: 1; }
+  100% { transform: translateY(300rpx) rotate(0deg); opacity: 1; }
+}
+
+.flat-stick {
+  width: 80rpx !important;
+  height: 320rpx !important;
+  background: #FF7F7F !important;
+  border: 4rpx solid #B22222 !important;
+  clip-path: polygon(0% 15%, 50% 0%, 100% 15%, 100% 100%, 0% 100%);
+  padding: 20rpx 0 !important;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  box-shadow: 0 10rpx 30rpx rgba(178, 34, 34, 0.3);
+}
+
+.stick-head {
+  display: none;
+}
+
+.divine-stick .paper-text {
+  font-size: 40rpx;
+  color: #B22222;
+  font-weight: bold;
+  writing-mode: vertical-rl;
+  margin-top: 20rpx;
+}
+
+/* 动画风提示文字 */
+.anime-hint {
   margin-top: 60rpx;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 30rpx;
+  transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
-.hint-badge {
-  padding: 12rpx 40rpx;
-  background: linear-gradient(135deg, #ffd700 0%, #ff9800 100%);
-  color: #1a1a2e;
-  font-size: 28rpx;
-  font-weight: bold;
-  border-radius: 50rpx;
-  box-shadow: 0 8rpx 20rpx rgba(255, 215, 0, 0.4);
-  animation: pulse 2s ease-in-out infinite;
+.anime-hint.active {
+  transform: scale(0.9);
+  opacity: 0.5;
 }
 
-@keyframes pulse {
-  0%, 100% {
-    transform: scale(1);
-    box-shadow: 0 8rpx 20rpx rgba(255, 215, 0, 0.4);
-  }
-  50% {
-    transform: scale(1.05);
-    box-shadow: 0 12rpx 30rpx rgba(255, 215, 0, 0.6);
-  }
-}
-
-.hint-action {
+.hint-main-box {
   display: flex;
   align-items: center;
   gap: 10rpx;
+  margin-bottom: 20rpx;
+}
+
+.bracket {
+  font-size: 48rpx;
+  color: #D4AF37;
+  font-weight: bold;
+}
+
+.hint-text-content {
+  font-size: 34rpx;
+  color: #fff;
+  letter-spacing: 2rpx;
+  text-shadow: 0 0 15rpx rgba(255, 215, 0, 0.5);
+}
+
+.hint-sub-box {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12rpx;
+  font-size: 26rpx;
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.pulse-dot {
+  width: 8rpx;
+  height: 8rpx;
+  background: #D4AF37;
+  border-radius: 50%;
+  animation: dot-pulse 1.5s infinite;
+}
+
+@keyframes dot-pulse {
+  0%, 100% { transform: scale(1); opacity: 0.4; }
+  50% { transform: scale(1.5); opacity: 1; }
+}
+
+/* 动画风历史按钮 */
+.anime-history {
+  margin-top: 40rpx;
+}
+
+.revisit-tag {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
   padding: 16rpx 40rpx;
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(230, 0, 18, 0.1);
+  border: 2rpx solid rgba(230, 0, 18, 0.3);
   border-radius: 50rpx;
-  color: rgba(255, 255, 255, 0.9);
-  font-size: 30rpx;
-  backdrop-filter: blur(10rpx);
-  border: 1rpx solid rgba(255, 255, 255, 0.2);
-  transition: all 0.3s;
+  color: #FFB7C5;
+  font-size: 28rpx;
+  backdrop-filter: blur(5px);
+  animation: tag-float 3s ease-in-out infinite;
 }
 
-.hint-action:active {
-  transform: scale(0.95);
-  background: rgba(255, 255, 255, 0.15);
+@keyframes tag-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10rpx); }
 }
 
-.hint-action .arrow {
+.tag-icon {
   font-size: 32rpx;
-  animation: arrow-move 1.5s ease-in-out infinite;
+  animation: icon-spin 4s linear infinite;
 }
 
-@keyframes arrow-move {
-  0%, 100% {
-    transform: translateX(0);
-  }
-  50% {
-    transform: translateX(10rpx);
-  }
+@keyframes icon-spin {
+  from { transform: rotate(0); }
+  to { transform: rotate(360deg); }
 }
 
 /* ==================== 极简艺术纸签 (Wabi-sabi Style) ==================== */
@@ -659,6 +803,51 @@
 .footer-btn:active {
   transform: scale(0.95);
   opacity: 0.9;
+}
+
+/* 掉落特效：金色传说 */
+.legendary-glow {
+  position: absolute;
+  width: 200%;
+  height: 150%;
+  left: -50%;
+  top: -25%;
+  background: radial-gradient(circle, rgba(255, 215, 0, 0.5) 0%, transparent 70%);
+  filter: blur(15px);
+  animation: pulse-glow 1s infinite alternate;
+}
+
+@keyframes pulse-glow {
+  from { opacity: 0.4; transform: scale(0.95); }
+  to { opacity: 0.8; transform: scale(1.05); }
+}
+
+/* 虹彩天光 */
+.celestial-beam {
+  position: absolute;
+  top: -100rpx;
+  width: 500rpx;
+  height: 900rpx;
+  background: linear-gradient(to bottom, 
+    rgba(255, 255, 255, 0) 0%, 
+    rgba(255, 215, 0, 0.1) 40%, 
+    rgba(255, 255, 255, 0.2) 50%, 
+    rgba(255, 215, 0, 0.1) 60%, 
+    rgba(255, 255, 255, 0) 100%);
+  opacity: 0;
+  pointer-events: none;
+  z-index: 5;
+  transition: opacity 0.8s ease;
+}
+
+.celestial-beam.active {
+  opacity: 1;
+  animation: beam-sweep 2s ease-in-out;
+}
+
+@keyframes beam-sweep {
+  0% { transform: translateX(-100%) skewX(-15deg); }
+  100% { transform: translateX(100%) skewX(-15deg); }
 }
 
 /* 响应式适配 */

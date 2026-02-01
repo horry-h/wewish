@@ -685,12 +685,63 @@ Page({
             })
 
             // 5. 宜忌
-            ctx.font = '12px PingFang SC'
+            const adviceY = canvasHeight - 230 // 向上大幅移动，从 160 改为 230
+            ctx.textAlign = 'left'
+            ctx.font = '600 12px PingFang SC'
+            
+            const adviceX = (canvasWidth - 280) / 2 // 稍微调宽绘制区域
+            const adviceMaxWidth = 250 // 宜忌文字最大宽度
+            
+            // 宜
+            ctx.fillStyle = '#52C41A'
+            ctx.beginPath()
+            ctx.arc(adviceX, adviceY - 4, 3, 0, Math.PI * 2)
+            ctx.fill()
+            
             ctx.fillStyle = '#999999'
-            ctx.fillText(`宜 ${fortuneData.suitable}`, canvasWidth / 2, canvasHeight - 120)
-            ctx.fillText(`忌 ${fortuneData.unsuitable}`, canvasWidth / 2, canvasHeight - 95)
+            ctx.fillText('宜', adviceX + 12, adviceY)
+            
+            ctx.fillStyle = '#666666'
+            ctx.font = '12px PingFang SC'
+            // 宜的内容也增加自动换行处理
+            const suitableLines = this.wrapText(ctx, fortuneData.suitable, adviceMaxWidth)
+            suitableLines.forEach((line, i) => {
+              ctx.fillText(line, adviceX + 35, adviceY + i * 18)
+            })
+            
+            // 忌
+            const unsuitableY = adviceY + (suitableLines.length * 18) + 4
+            ctx.fillStyle = '#F5222D'
+            ctx.beginPath()
+            ctx.arc(adviceX, unsuitableY - 4, 3, 0, Math.PI * 2)
+            ctx.fill()
+            
+            ctx.fillStyle = '#999999'
+            ctx.font = '600 12px PingFang SC'
+            ctx.fillText('忌', adviceX + 12, unsuitableY)
+            
+            ctx.fillStyle = '#666666'
+            ctx.font = '12px PingFang SC'
+            const unsuitableLines = this.wrapText(ctx, fortuneData.unsuitable, adviceMaxWidth)
+            unsuitableLines.forEach((line, i) => {
+              ctx.fillText(line, adviceX + 35, unsuitableY + i * 18)
+            })
 
-            // 6. 底部
+            // 6. 书灵寄语
+            const messageY = unsuitableY + (unsuitableLines.length * 18) + 25
+            ctx.textAlign = 'center'
+            ctx.fillStyle = '#CCCCCC'
+            ctx.font = '10px PingFang SC'
+            ctx.fillText('◆', canvasWidth / 2, messageY)
+            
+            ctx.fillStyle = '#888888'
+            ctx.font = 'italic 11px PingFang SC'
+            const messageLines = this.wrapText(ctx, fortuneData.message, 280)
+            messageLines.forEach((line, i) => {
+              ctx.fillText(line, canvasWidth / 2, messageY + 18 + i * 18)
+            })
+
+            // 7. 底部标识
             ctx.font = '11px PingFang SC'
             ctx.fillStyle = '#CCCCCC'
             ctx.fillText('—— 来自《当下有解》极简纸签 ——', canvasWidth / 2, canvasHeight - 40)

@@ -317,7 +317,7 @@
   z-index: 1000;
   opacity: 0;
   visibility: hidden;
-  transition: all 0.5s ease;
+  /* 移除 transition，改为只控制显示隐藏 */
 }
 
 .result-modal.show {
@@ -334,6 +334,15 @@
   bottom: 0;
   background: #1A1A1A; /* 极简黑灰色 */
   z-index: 1;
+  opacity: 0;
+  /* 启用硬件加速 */
+  will-change: opacity;
+  animation: backdrop-fadein 0.3s ease-out forwards;
+}
+
+@keyframes backdrop-fadein {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 /* 纸签容器包裹层 */
@@ -363,16 +372,27 @@
   box-shadow: 0 40rpx 100rpx rgba(0, 0, 0, 0.25);
   overflow: hidden;
   position: relative;
-  transform: translateY(60rpx);
-  opacity: 0;
-  transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);
   display: flex;
   flex-direction: column;
+  /* 启用硬件加速和复合层 */
+  will-change: transform, opacity;
+  transform: translate3d(0, 80rpx, 0); /* 使用 translate3d 启用 GPU 加速 */
+  opacity: 0;
 }
 
 .lucky-card.slide-up {
-  transform: translateY(0);
-  opacity: 1;
+  animation: card-slide-up 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.15s forwards;
+}
+
+@keyframes card-slide-up {
+  from { 
+    transform: translate3d(0, 80rpx, 0); 
+    opacity: 0; 
+  }
+  to { 
+    transform: translate3d(0, 0, 0); 
+    opacity: 1; 
+  }
 }
 
 /* 顶部意象区 (Header Image) */
@@ -382,6 +402,13 @@
   position: relative;
   overflow: hidden;
   flex-shrink: 0;
+  /* 启用硬件加速 */
+  will-change: opacity;
+}
+
+.show .header-image-box {
+  animation: content-fadein 0.4s ease-out 0.3s forwards;
+  opacity: 0;
 }
 
 .header-image {
@@ -408,13 +435,25 @@
   top: 28vh; /* 适配缩小的图片 */
   right: 40rpx;
   z-index: 20;
-  transform: rotate(15deg);
-  animation: stamp-drop 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) 0.5s both;
+  transform: rotate(15deg) scale(0);
+  opacity: 0;
+  /* 启用硬件加速 */
+  will-change: transform, opacity;
+}
+
+.show .soul-stamp {
+  animation: stamp-drop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) 0.5s forwards;
 }
 
 @keyframes stamp-drop {
-  from { opacity: 0; transform: rotate(15deg) scale(2); }
-  to { opacity: 1; transform: rotate(15deg) scale(1); }
+  from { 
+    opacity: 0; 
+    transform: rotate(15deg) scale(0);
+  }
+  to { 
+    opacity: 1; 
+    transform: rotate(15deg) scale(1);
+  }
 }
 
 .stamp-border {
@@ -452,6 +491,18 @@
   flex: 1;
   overflow: hidden; /* 内容区弹性展示 */
   position: relative;
+  opacity: 0;
+  /* 启用硬件加速 */
+  will-change: opacity;
+}
+
+.show .paper-content {
+  animation: content-fadein 0.5s ease-out 0.4s forwards;
+}
+
+@keyframes content-fadein {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 /* 垂直签文排版核心 (Zen Typography) */

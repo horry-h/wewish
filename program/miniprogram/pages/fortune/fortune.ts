@@ -364,7 +364,7 @@ Page({
     this.setData({ isGenerating: true })
     this.preloadBackgroundImage()
 
-    this.callAIForFortune().then((fortuneData) => {
+    this.callAIForFortune().then((fortuneData: FortuneData) => {
       const { verseLines, verseLine1, verseLine2 } = this.processVerseForDisplay(fortuneData.verse)
       this.setData({
         fortuneData: fortuneData,
@@ -373,7 +373,7 @@ Page({
         verseLine2: verseLine2, 
         isDataReady: true 
       })
-    }).catch((error) => {
+    }).catch((error: any) => {
       console.error('预加载签文失败:', error)
       const defaultFortune = {
         level: 'good',
@@ -705,7 +705,7 @@ Page({
             ctx.font = '12px PingFang SC'
             // 宜的内容也增加自动换行处理
             const suitableLines = this.wrapText(ctx, fortuneData.suitable, adviceMaxWidth)
-            suitableLines.forEach((line, i) => {
+            suitableLines.forEach((line: string, i: number) => {
               ctx.fillText(line, adviceX + 35, adviceY + i * 18)
             })
             
@@ -723,7 +723,7 @@ Page({
             ctx.fillStyle = '#666666'
             ctx.font = '12px PingFang SC'
             const unsuitableLines = this.wrapText(ctx, fortuneData.unsuitable, adviceMaxWidth)
-            unsuitableLines.forEach((line, i) => {
+            unsuitableLines.forEach((line: string, i: number) => {
               ctx.fillText(line, adviceX + 35, unsuitableY + i * 18)
             })
 
@@ -737,7 +737,7 @@ Page({
             ctx.fillStyle = '#888888'
             ctx.font = 'italic 11px PingFang SC'
             const messageLines = this.wrapText(ctx, fortuneData.message, 280)
-            messageLines.forEach((line, i) => {
+            messageLines.forEach((line: string, i: number) => {
               ctx.fillText(line, canvasWidth / 2, messageY + 18 + i * 18)
             })
 

@@ -12,14 +12,14 @@
   flex-shrink: 0;
 }
 
-/* 顶部区域(标题+每日一签按钮) */
+/* 顶部区域(标题) */
 .top-area {
   display: flex;
   justify-content: space-between;
-  align-items: flex-end; /* 改为底部对齐，让按钮往下移 */
-  padding: 40rpx 0 32rpx;
+  align-items: flex-end;
+  padding: 40rpx 0 20rpx; /* 减小底部 padding */
   flex-shrink: 0;
-  min-height: 132rpx; /* 增加最小高度，确保按钮有足够空间下移 */
+  min-height: 100rpx; /* 调整最小高度 */
 }
 
 .header {
@@ -40,34 +40,141 @@
   letter-spacing: 2rpx;
 }
 
-/* 每日一签按钮(小图标) */
-.daily-btn {
-  width: 88rpx;
-  height: 88rpx;
-  background: rgba(255, 255, 255, 0.08);
-  border-radius: 50%;
+/* 每日一签入口 (治愈横幅卡片) */
+.daily-fortune-entry {
+  position: relative;
+  height: 130rpx;
+  margin: 10rpx 0 40rpx; /* 确保与下方分类保持 40rpx 间距 */
+  border-radius: 24rpx;
+  overflow: hidden;
+  animation: cardBreathe 4s ease-in-out infinite;
+  backdrop-filter: blur(20rpx);
+  -webkit-backdrop-filter: blur(20rpx);
+  border: 1rpx solid rgba(255, 255, 255, 0.08);
+  box-sizing: border-box;
+
+  &.opened {
+    animation: none; /* 开启后停止呼吸 */
+    opacity: 0.9;
+  }
+}
+
+.fortune-card-bg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(30, 30, 50, 0.4);
+  z-index: 1;
+}
+
+.fortune-content {
+  position: relative;
+  z-index: 2;
+  height: 100%;
+  padding: 0 32rpx;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.fortune-left {
+  display: flex;
+  align-items: center;
+  gap: 24rpx;
+}
+
+.qiantong-wrapper {
+  position: relative;
+  width: 80rpx;
+  height: 80rpx;
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 2rpx solid rgba(255, 255, 255, 0.15);
-  backdrop-filter: blur(10rpx);
-  transition: all 0.3s ease;
-  margin-bottom: 0rpx; /* 增加底部间距，使按钮与标题底部对齐时更自然 */
 }
 
-.daily-btn:active {
-  transform: scale(0.9);
-  background: rgba(255, 255, 255, 0.12);
+.qiantong-icon {
+  width: 64rpx;
+  height: 64rpx;
+  animation: iconShake 5s ease-in-out infinite;
+
+  &.static {
+    animation: none; /* 开启后停止摇晃 */
+  }
 }
 
-.lantern-icon {
-  font-size: 44rpx;
-  animation: sway 3s ease-in-out infinite;
+.glow-dot {
+  position: absolute;
+  width: 12rpx;
+  height: 12rpx;
+  background: #f4d5a6;
+  border-radius: 50%;
+  filter: blur(4rpx);
+  box-shadow: 0 0 12rpx #f4d5a6;
+  top: 10rpx;
+  right: 10rpx;
+  animation: glowBreathe 2s ease-in-out infinite;
 }
 
-@keyframes sway {
-  0%, 100% { transform: rotate(-8deg); }
-  50% { transform: rotate(8deg); }
+.fortune-text {
+  display: flex;
+  flex-direction: column;
+  gap: 4rpx;
+}
+
+.fortune-title {
+  font-size: 30rpx;
+  font-family: 'STKaiti', 'KaiTi', serif; /* 衬线体 */
+  color: #fff;
+  letter-spacing: 2rpx;
+  font-weight: 500;
+}
+
+.fortune-subtitle {
+  font-size: 20rpx;
+  color: rgba(255, 255, 255, 0.5);
+  font-weight: 300;
+}
+
+.fortune-right {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+}
+
+.open-btn {
+  font-size: 22rpx;
+  color: rgba(255, 255, 255, 0.8);
+  background: rgba(255, 255, 255, 0.1);
+  padding: 4rpx 16rpx;
+  border-radius: 20rpx;
+  font-weight: 300;
+}
+
+.arrow-icon {
+  font-size: 24rpx;
+  color: rgba(255, 255, 255, 0.3);
+  font-weight: 200;
+}
+
+/* 动效 */
+@keyframes cardBreathe {
+  0%, 100% { opacity: 0.85; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.005); }
+}
+
+@keyframes iconShake {
+  0%, 90%, 100% { transform: rotate(0); }
+  92% { transform: rotate(-10deg); }
+  94% { transform: rotate(10deg); }
+  96% { transform: rotate(-5deg); }
+  98% { transform: rotate(5deg); }
+}
+
+@keyframes glowBreathe {
+  0%, 100% { opacity: 0.4; transform: scale(0.8); }
+  50% { opacity: 1; transform: scale(1.2); }
 }
 
 /* 问题分类区(紧凑横向布局) */

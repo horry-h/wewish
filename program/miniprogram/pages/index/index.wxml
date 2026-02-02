@@ -10,10 +10,26 @@
       <view class="title gradient-text">当下有解</view>
       <view class="subtitle">Answer Book</view>
     </view>
+  </view>
 
-    <!-- 右侧每日一签按钮 -->
-    <view class="daily-btn" bindtap="onDailyCardTap">
-      <view class="lantern-icon">🏮</view>
+  <!-- 每日一签入口 (治愈横幅卡片) -->
+  <view class="daily-fortune-entry {{hasOpenedFortune ? 'opened' : ''}}" bindtap="onDailyCardTap">
+    <view class="fortune-card-bg"></view>
+    <view class="fortune-content">
+      <view class="fortune-left">
+        <view class="qiantong-wrapper">
+          <image class="qiantong-icon {{hasOpenedFortune ? 'static' : ''}}" src="../../assets/img/qiantong.jpg" mode="aspectFit" />
+          <view class="glow-dot" wx:if="{{!hasOpenedFortune}}"></view>
+        </view>
+        <view class="fortune-text">
+          <view class="fortune-title">{{hasOpenedFortune ? '今日缘分 · 签文已现' : '今日缘分 · 每日一签'}}</view>
+          <view class="fortune-subtitle">{{hasOpenedFortune ? '点击再次查看属于你的今日启示' : '摇动灵感，开启属于你的今日启示'}}</view>
+        </view>
+      </view>
+      <view class="fortune-right">
+        <view class="open-btn">{{hasOpenedFortune ? '查看' : '开启'}}</view>
+        <text class="arrow-icon">></text>
+      </view>
     </view>
   </view>
 

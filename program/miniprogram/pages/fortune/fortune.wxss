@@ -231,58 +231,97 @@
   filter: contrast(1.15) brightness(1.1);
 }
 
-/* 掉落签条适配 - 赛博禅意风格 */
+/* 掉落签条适配 - 赛博禅意重构版 */
 .divine-stick {
   position: absolute;
   top: 0;
   left: 50%;
-  margin-left: -40rpx;
-  width: 80rpx;
-  height: 320rpx;
-  z-index: 100;
+  margin-left: -35rpx;
+  width: 70rpx;
+  height: 300rpx;
+  z-index: 50; /* 高于签筒，低于弹窗 */
   pointer-events: none;
   opacity: 0;
   will-change: transform, opacity;
 }
 
 .divine-stick.dropping {
-  animation: divine-drop 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+  animation: divine-drop-zen 0.9s cubic-bezier(0.23, 1, 0.32, 1) forwards;
 }
 
 .divine-stick.landing {
   opacity: 1;
-  transform: translateY(450rpx) rotate(0deg);
+  transform: translateY(480rpx) rotate(2deg) scale(1);
 }
 
-@keyframes divine-drop {
-  0% { transform: translateY(-200rpx) rotate(-15deg); opacity: 0; }
-  30% { opacity: 1; }
-  100% { transform: translateY(450rpx) rotate(0deg); opacity: 1; }
+@keyframes divine-drop-zen {
+  0% { 
+    transform: translateY(-150rpx) rotate(-25deg) scale(0.8); 
+    opacity: 0; 
+  }
+  20% { 
+    opacity: 1; 
+  }
+  60% {
+    transform: translateY(500rpx) rotate(15deg) scale(1.05);
+  }
+  100% { 
+    transform: translateY(480rpx) rotate(2deg) scale(1); 
+    opacity: 1; 
+  }
 }
 
-.flat-stick {
-  width: 80rpx !important;
-  height: 320rpx !important;
-  background: #ec8b8b !important;
-  border: 4rpx solid #8e1a1a !important;
-  clip-path: polygon(0% 15%, 50% 0%, 100% 15%, 100% 100%, 0% 100%);
-  padding: 20rpx 0 !important;
+.stick-body {
+  width: 100%;
+  height: 100%;
+  background: #F4F1EA; /* 浅檀木色/和纸感 */
+  border: 1rpx solid #D4AF37; /* 极其纤细的金色边框 */
+  box-shadow: 0 0 15rpx rgba(212, 175, 55, 0.2); /* 微弱金色外发光 */
+  border-radius: 8rpx;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* 动效：光影扫过效果 */
+.stick-shine {
+  position: absolute;
+  top: 0;
+  left: -150%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.6),
+    transparent
+  );
+  transform: skewX(-20deg);
+  animation: light-sweep 3s infinite;
+}
+
+@keyframes light-sweep {
+  0% { left: -150%; }
+  30%, 100% { left: 150%; }
+}
+
+.stick-content {
+  z-index: 2;
   display: flex;
   flex-direction: column;
   align-items: center;
-  box-shadow: 0 10rpx 30rpx rgba(142, 26, 26, 0.3);
 }
 
-.stick-head {
-  display: none;
-}
-
-.divine-stick .paper-text {
-  font-size: 40rpx;
-  color: #8e1a1a;
-  font-weight: bold;
+.stick-text {
   writing-mode: vertical-rl;
-  margin-top: 20rpx;
+  font-size: 32rpx;
+  color: #2C2C2C; /* 深灰色文字 */
+  letter-spacing: 8rpx; /* 增加呼吸感 */
+  font-family: "STKaiti", "KaiTi", serif;
+  font-weight: 600;
+  text-align: center;
 }
 
 /* 动画风提示文字 - 赛博禅意风格 */
@@ -745,23 +784,6 @@
 .footer-btn:active {
   transform: scale(0.95);
   opacity: 0.9;
-}
-
-/* 掉落特效：金色传说 */
-.legendary-glow {
-  position: absolute;
-  width: 200%;
-  height: 150%;
-  left: -50%;
-  top: -25%;
-  background: radial-gradient(circle, rgba(255, 215, 0, 0.5) 0%, transparent 70%);
-  filter: blur(15px);
-  animation: pulse-glow 1s infinite alternate;
-}
-
-@keyframes pulse-glow {
-  from { opacity: 0.4; transform: scale(0.95); }
-  to { opacity: 0.8; transform: scale(1.05); }
 }
 
 /* 虹彩天光 */

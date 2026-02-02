@@ -17,7 +17,7 @@
     <view class="subtitle">Daily Fortune</view>
   </view>
 
-  <!-- 签筒区域 - 重新设计为“动画风日式神社签筒” -->
+  <!-- 签筒区域 - 重新设计为"动画风日式神社签筒" -->
   <view 
     class="shrine-section {{isInteracting ? 'interacting' : ''}}" 
     bindtouchstart="onTouchStart"
@@ -46,12 +46,13 @@
         ></image>
       </view>
 
-      <!-- 掉落中的那根签 -->
+      <!-- 掉落中的那根签 - 重构为"赛博禅意"高质感签条 -->
       <view class="divine-stick {{stickState}}" wx:if="{{stickState !== 'hidden'}}">
-        <view class="legendary-glow"></view>
-        <view class="stick-paper flat-stick">
-          <view class="stick-head"></view>
-          <view class="paper-text">御神籤</view>
+        <view class="stick-body">
+          <view class="stick-shine"></view>
+          <view class="stick-content">
+            <text class="stick-text">御神籤</text>
+          </view>
         </view>
       </view>
     </view>

@@ -38,7 +38,8 @@ Page({
     currentBgImageUrl: '', // 当前使用的背景图URL
     currentBgLocalPath: '', // 当前背景图的本地缓存路径
     isRefreshingBg: false, // 是否正在刷新背景
-    showQuestion: false // 是否在海报上展示问题（默认不展示）
+    showQuestion: false, // 是否在海报上展示问题（默认不展示）
+    hasOpenedFortune: false // 是否已开启今日签文
   },
 
   // 定时器
@@ -1269,6 +1270,24 @@ ${enhancement}
     this.setData({
       isBreathing: true
     })
+    // 检查今日是否已开启签文
+    this.checkFortuneStatus()
+  },
+
+  // 检查今日签文状态
+  checkFortuneStatus() {
+    try {
+      const savedFortuneData = wx.getStorageSync('fortune_data')
+      const now = new Date()
+      const todayKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`
+      
+      const hasOpened = savedFortuneData && savedFortuneData.date === todayKey
+      this.setData({
+        hasOpenedFortune: !!hasOpened
+      })
+    } catch (e) {
+      console.error('检查签文状态失败', e)
+    }
   },
 
   // 分享给好友

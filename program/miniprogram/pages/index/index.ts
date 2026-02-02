@@ -91,7 +91,8 @@ Page({
         answer: decodeURIComponent(options.answer || ''),
         analysis: options.analysis ? decodeURIComponent(options.analysis) : '', // AI解读可能为空
         timestamp: decodeURIComponent(options.timestamp || ''),
-        question: options.question ? decodeURIComponent(options.question) : ''
+        question: options.question ? decodeURIComponent(options.question) : '',
+        bgImageUrl: options.bgImage ? decodeURIComponent(options.bgImage) : '' // 背景图URL
       }
 
       console.log('📦 分享数据解析成功:', {
@@ -99,7 +100,8 @@ Page({
         categoryName: sharedData.categoryName,
         answer: sharedData.answer,
         hasAnalysis: !!sharedData.analysis,
-        hasQuestion: !!sharedData.question
+        hasQuestion: !!sharedData.question,
+        hasBgImage: !!sharedData.bgImageUrl
       })
 
       // 延迟一帧执行，确保页面已完全渲染
@@ -118,10 +120,20 @@ Page({
         }, () => {
           console.log('✅ 分享数据加载完成，准备生成海报...')
           
+          // 如果有分享的背景图URL，先设置为当前背景（确保一致性）
+          if (sharedData.bgImageUrl) {
+            console.log('🖼️ 使用分享者的背景图:', sharedData.bgImageUrl)
+            this.setData({
+              currentBgImageUrl: sharedData.bgImageUrl
+            })
+          }
+          
           // 自动生成并显示海报卡片
-          this.drawPoster(false, true).then(() => {
+          // 如果有背景图URL，不使用随机壁纸；否则使用随机壁纸
+          const useRandomBg = !sharedData.bgImageUrl
+          this.drawPoster(false, useRandomBg).then(() => {
             console.log('🎨 分享海报生成成功，已自动展示')
-          }).catch((error) => {
+          }).catch((error: any) => {
             console.error('❌ 分享海报生成失败:', error)
             // 如果海报生成失败，降级显示答案卡片
             this.setData({
@@ -445,11 +457,18 @@ Page({
     }
   },
 
-  // 分享模式：抽我的答案
+  // 分享模式：问我的问题（引导用户体验）
   onTryMyAnswer() {
     wx.vibrateShort({ type: 'medium' })
     
-    // 关闭分享的答案卡片
+    console.log('🎯 用户点击"问我的问题"，准备切换到体验模式')
+    
+    // 如果是从海报弹窗点击，关闭弹窗
+    if (this.data.showPosterModal) {
+      this.setData({ showPosterModal: false })
+    }
+    
+    // 清除分享模式状态，让用户开始自己的体验
     this.setData({
       showResultCard: false,
       isSharedView: false,
@@ -462,8 +481,14 @@ Page({
       isBreathing: true
     })
     
+    // 滚动到顶部，引导用户开始体验
+    wx.pageScrollTo({
+      scrollTop: 0,
+      duration: 300
+    })
+    
     wx.showToast({
-      title: '开始抽取您的答案',
+      title: '长按开始你的问答',
       icon: 'none',
       duration: 2000
     })
@@ -1178,7 +1203,6 @@ ${enhancement}
     const showQuestion = e.detail.value
     this.setData({ showQuestion })
     
-    // 立即重新绘制海报，实时预览效果（使用当前背景，不刷新）
     wx.vibrateShort({ type: 'light' })
     this.drawPoster(false, false) // forceRefreshBg=false 使用缓存背景
   },
@@ -1281,11 +1305,24 @@ ${enhancement}
       showResultCard: this.data.showResultCard,
       hasAnswer: !!this.data.resultAnswer,
       hasAnalysis: !!this.data.fullAnalysis,
-      isSharedView: this.data.isSharedView
+      isSharedView: this.data.isSharedView,
+      hasBgImage: !!this.data.currentBgImageUrl,
+      hasPoster: !!this.data.posterImagePath
     })
 
     // 场景1：有答案（无论是否有AI解读）
     if (this.data.resultAnswer) {
+      // 🎨 如果还没有生成海报，先生成一张（确保有背景图和海报）
+      if (!this.data.posterImagePath || !this.data.currentBgImageUrl) {
+        console.log('📸 分享前需要生成海报，等待生成...')
+        // 异步生成海报，但不阻塞分享
+        this.drawPoster(false, true).then(() => {
+          console.log('✅ 海报生成成功（后台）')
+        }).catch((error: any) => {
+          console.error('❌ 海报生成失败:', error)
+        })
+      }
+
       const category = this.data.categories.find(cat => cat.key === this.data.selectedCategory) || this.data.categories[7]
       
       const params = [
@@ -1309,6 +1346,12 @@ ${enhancement}
         params.push(`question=${encodeURIComponent(this.data.userThought)}`)
       }
       
+      // 🎨 携带背景图URL（确保接收者看到相同背景）
+      if (this.data.currentBgImageUrl) {
+        params.push(`bgImage=${encodeURIComponent(this.data.currentBgImageUrl)}`)
+        console.log('🖼️ 分享包含背景图URL:', this.data.currentBgImageUrl.substring(0, 50) + '...')
+      }
+      
       const sharePath = `/pages/index/index?${params.join('&')}`
       console.log('📤 分享路径:', sharePath.substring(0, 100) + '...')
       
@@ -1324,7 +1367,7 @@ ${enhancement}
     return {
       title: '当下有解 - 书灵为你指引方向',
       path: '/pages/index/index',
-      imageUrl: this.data.posterImagePath || ''
+      imageUrl: ''
     }
   },
 

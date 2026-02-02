@@ -189,7 +189,7 @@
     <view class="poster-mask" bindtap="onClosePosterModal"></view>
     <view class="poster-content">
       <view class="poster-header">
-        <text class="poster-title">长按保存图片</text>
+        <text class="poster-title">{{isSharedView ? '好友分享的答案' : '长按保存图片'}}</text>
         <view class="poster-header-right">
           <view 
             class="poster-refresh-btn {{isRefreshingBg ? 'refreshing' : ''}}" 
@@ -209,8 +209,8 @@
         show-menu-by-longpress
       />
       
-      <!-- 展示问题开关 -->
-      <view class="poster-option" wx:if="{{userThought}}">
+      <!-- 展示问题开关（仅非分享模式） -->
+      <view class="poster-option" wx:if="{{userThought && !isSharedView}}">
         <view class="poster-option-label">
           <text class="option-icon">💭</text>
           <text>展示我的问题</text>
@@ -223,7 +223,19 @@
         />
       </view>
       
-      <view class="poster-actions">
+      <!-- 分享模式：引导按钮 -->
+      <view class="poster-actions" wx:if="{{isSharedView}}">
+        <button class="poster-btn poster-btn-primary" bindtap="onTryMyAnswer">
+          <text class="btn-icon">✨</text>
+          <text>问我的问题</text>
+        </button>
+        <button class="poster-btn poster-btn-save" bindtap="savePoster">
+          保存图片
+        </button>
+      </view>
+      
+      <!-- 正常模式：保存和分享 -->
+      <view class="poster-actions" wx:else>
         <button class="poster-btn poster-btn-save" bindtap="savePoster">
           保存到相册
         </button>

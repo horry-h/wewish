@@ -32,49 +32,18 @@
       <view class="sakura s4"></view>
     </view>
 
-    <!-- 核心签筒：萌系猪猪样式 -->
+    <!-- 核心签筒：赛博禅意玻璃签筒 -->
     <view class="omikuji-box {{isInteracting ? 'shaking' : ''}}">
-      <!-- 签筒阴影 -->
-      <view class="bucket-glow"></view>
+      <!-- 签筒光晕背景 -->
+      <view class="cyber-glow"></view>
       
-      <!-- 猪猪签筒主体 -->
-      <view class="piggy-bucket">
-        <!-- 猪耳朵 -->
-        <view class="pig-ear left"></view>
-        <view class="pig-ear right"></view>
-        
-        <!-- 筒身 -->
-        <view class="bucket-body">
-          <view class="gold-rim-top"></view>
-          
-          <!-- 猪脸 -->
-          <view class="pig-face">
-            <view class="pig-eye left">
-              <view class="eye-sparkle"></view>
-            </view>
-            <view class="pig-eye right">
-              <view class="eye-sparkle"></view>
-            </view>
-            <view class="pig-nose">
-              <view class="nostril"></view>
-              <view class="nostril"></view>
-            </view>
-          </view>
-          
-          <!-- 签字标签 -->
-          <view class="tag-diamond">
-            <text>签</text>
-          </view>
-        </view>
-
-        <!-- 内部签束：扁平化宽签 -->
-        <view class="anime-sticks">
-          <view class="a-stick s1"><text>好运上上</text></view>
-          <view class="a-stick s2"><text>财运上上</text></view>
-          <view class="a-stick s3"><text>缘分上上</text></view>
-          <view class="a-stick s4"><text>事业大吉</text></view>
-          <view class="a-stick s5"><text>平安顺遂</text></view>
-        </view>
+      <!-- 赛博签筒图片 -->
+      <view class="cyber-bucket-wrapper">
+        <image 
+          class="cyber-bucket-image" 
+          src="/assets/img/qiantong.jpg" 
+          mode="widthFix"
+        ></image>
       </view>
 
       <!-- 掉落中的那根签 -->
@@ -90,17 +59,15 @@
     <!-- 动画风天光：带虹彩感 -->
     <view class="celestial-beam {{stickState === 'dropping' ? 'active' : ''}}"></view>
 
-    <!-- 提示文字：日系排版 -->
+    <!-- 提示文字：赛博禅意排版 -->
     <view class="anime-hint {{isInteracting ? 'active' : ''}}">
       <view class="hint-main-box">
         <text class="bracket">「</text>
-        <text class="hint-text-content">{{hintText}}</text>
+        <text class="hint-text-content cyber-zen-text">{{hintText}}</text>
         <text class="bracket">」</text>
       </view>
-      <view class="hint-sub-box" wx:if="{{!fortuneData || !hasClosedResult}}">
-        <text>静心摇动</text>
-        <view class="pulse-dot"></view>
-        <text>缘分自现</text>
+      <view class="hint-sub-box cyber-sub-hint" wx:if="{{!fortuneData || !hasClosedResult}}">
+        <text>心诚则灵，感受当下</text>
       </view>
     </view>
 

@@ -119,219 +119,119 @@
   100% { transform: translateY(1000rpx) rotate(360deg); opacity: 0; }
 }
 
-/* 六角签筒容器 */
+/* 六角签筒容器 - 赛博禅意风格 */
 .omikuji-box {
   position: relative;
-  width: 300rpx;
-  height: 460rpx;
+  width: 70vw;
+  max-width: 520rpx;
+  min-height: 500rpx; /* 确保有一个基础高度 */
   z-index: 10;
   perspective: 1200rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto;
 }
 
+/* 悬浮呼吸动画 - 永久循环 */
+.omikuji-box {
+  animation: cyber-floating 4s ease-in-out infinite;
+}
+
+@keyframes cyber-floating {
+  0%, 100% { 
+    transform: translateY(0); 
+  }
+  50% { 
+    transform: translateY(-20rpx); 
+  }
+}
+
+/* 摇动状态覆盖悬浮动画 */
 .omikuji-box.shaking {
-  animation: anime-shake 0.15s infinite;
+  animation: cyber-shake 0.1s infinite !important;
+  /* 移除 contrast 滤镜，防止在混合模式下产生白影 */
+  filter: none !important;
+  will-change: transform;
 }
 
-@keyframes anime-shake {
-  0%, 100% { transform: rotate(0deg) scale(1); filter: contrast(1.1); }
-  50% { transform: rotate(2deg) scale(1.02); filter: contrast(1.2); }
+@keyframes cyber-shake {
+  0%, 100% { 
+    transform: translateX(0) rotate(0deg); 
+  }
+  25% { 
+    transform: translateX(-8rpx) rotate(-2deg); 
+  }
+  75% { 
+    transform: translateX(8rpx) rotate(2deg); 
+  }
 }
 
-.bucket-glow {
+/* 赛博光晕背景 - 呼吸感 */
+.cyber-glow {
   position: absolute;
-  width: 120%;
-  height: 120%;
-  left: -10%;
-  top: -10%;
-  background: radial-gradient(circle, rgba(230, 0, 18, 0.15) 0%, transparent 70%);
-  filter: blur(20px);
+  width: 140%;
+  height: 140%;
+  left: -20%;
+  top: -20%;
+  background: radial-gradient(
+    ellipse at center,
+    rgba(255, 230, 140, 0.15) 0%,
+    rgba(123, 104, 238, 0.1) 40%,
+    transparent 70%
+  );
+  filter: blur(50rpx);
   z-index: -1;
+  animation: glow-breath 4s ease-in-out infinite;
 }
 
-/* 萌系猪猪签筒实现 */
-.piggy-bucket {
-  position: relative;
+@keyframes glow-breath {
+  0%, 100% { 
+    opacity: 0.5;
+    transform: scale(0.95);
+  }
+  50% { 
+    opacity: 0.8;
+    transform: scale(1.05);
+  }
+}
+
+/* 签筒图片容器 */
+.cyber-bucket-wrapper {
   width: 100%;
-  height: 100%;
   display: flex;
-  flex-direction: column;
   align-items: center;
-  justify-content: flex-end;
-}
-
-.bucket-body {
+  justify-content: center;
   position: relative;
-  width: 260rpx;
-  height: 320rpx;
-  /* 优化红：采用经典的朱砂红渐变，增加色彩深度 */
-  background: linear-gradient(180deg, #d32f2f 0%, #b71c1c 100%);
-  border-radius: 40rpx 40rpx 80rpx 80rpx;
-  /* 增加柔和的外阴影与光晕，使物体“嵌入”背景 */
-  box-shadow: 0 20rpx 60rpx rgba(0,0,0,0.4), 
-              0 0 40rpx rgba(183, 28, 28, 0.1),
-              inset 0 4rpx 20rpx rgba(255,255,255,0.1);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  z-index: 2;
   overflow: visible;
 }
 
-.pig-ear {
-  position: absolute;
-  top: 10rpx;
-  width: 70rpx;
-  height: 70rpx;
-  background: #b71c1c;
-  z-index: -1;
-}
-
-.pig-ear.left {
-  left: -20rpx;
-  border-radius: 40rpx 0 0 40rpx;
-  transform: rotate(-10deg);
-}
-
-.pig-ear.right {
-  right: -20rpx;
-  border-radius: 0 40rpx 40rpx 0;
-  transform: rotate(10deg);
-}
-
-.gold-rim-top {
-  width: 110%;
-  height: 44rpx;
-  /* 优化金：采用香槟金/暗金效果，避免廉价黄 */
-  background: linear-gradient(180deg, #e0c068 0%, #b8860b 100%);
-  border-radius: 22rpx;
-  margin-top: -10rpx;
-  box-shadow: 0 6rpx 12rpx rgba(0,0,0,0.3);
-  z-index: 3;
-}
-
-.pig-face {
-  margin-top: 30rpx;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  position: relative;
+/* 签筒图片样式 - 赛博无缝融合版 */
+.cyber-bucket-image {
   width: 100%;
+  height: auto;
+  display: block;
+  /* 关键1：混合模式，过滤黑色背景，让亮部融入背景 */
+  mix-blend-mode: screen;
+  /* 关键2：边缘羽化蒙版，消除矩形边界感 */
+  -webkit-mask-image: radial-gradient(
+    circle at center,
+    black 35%,
+    rgba(0, 0, 0, 0.5) 55%,
+    rgba(0, 0, 0, 0) 75%
+  );
+  mask-image: radial-gradient(
+    circle at center,
+    black 35%,
+    rgba(0, 0, 0, 0.5) 55%,
+    rgba(0, 0, 0, 0) 75%
+  );
+  /* 关键3：微调亮度和对比度 */
+  filter: contrast(1.15) brightness(1.1);
 }
 
-.pig-eye {
-  position: absolute;
-  top: 40rpx;
-  width: 44rpx;
-  height: 44rpx;
-  background: #000;
-  border-radius: 50%;
-}
-
-.pig-eye.left { left: 55rpx; }
-.pig-eye.right { right: 55rpx; }
-
-.eye-sparkle {
-  position: absolute;
-  top: 8rpx;
-  left: 8rpx;
-  width: 14rpx;
-  height: 14rpx;
-  background: #fff;
-  border-radius: 50%;
-}
-
-.pig-nose {
-  margin-top: 75rpx;
-  width: 80rpx;
-  height: 54rpx;
-  /* 优化粉：更温润的浅肉粉色 */
-  background: #ffabab;
-  border-radius: 30rpx;
-  display: flex;
-  justify-content: center;
-  gap: 12rpx;
-  align-items: center;
-  border: 4rpx solid #a41a1a;
-  box-shadow: 0 4rpx 10rpx rgba(0,0,0,0.15);
-}
-
-.nostril {
-  width: 12rpx;
-  height: 12rpx;
-  background: #800000;
-  border-radius: 50%;
-}
-
-.pig-mouth {
-  width: 24rpx;
-  height: 12rpx;
-  background: #a41a1a;
-  border-radius: 0 0 12rpx 12rpx;
-  margin-top: 4rpx;
-}
-
-.tag-diamond {
-  position: absolute;
-  bottom: 30rpx;
-  width: 80rpx;
-  height: 80rpx;
-  background: #8e1a1a;
-  transform: rotate(45deg);
-  /* 标签边框同步金质感 */
-  border: 2rpx solid #e0c068;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 6rpx 15rpx rgba(0,0,0,0.4);
-}
-
-.tag-diamond text {
-  transform: rotate(-45deg);
-  color: #e0c068;
-  font-size: 40rpx;
-  font-weight: bold;
-}
-
-/* 扁平化签条样式 */
-.anime-sticks {
-  position: absolute;
-  top: -60rpx;
-  width: 220rpx;
-  height: 200rpx;
-  display: flex;
-  justify-content: center;
-  z-index: -1;
-}
-
-.a-stick {
-  position: absolute;
-  width: 50rpx;
-  height: 240rpx;
-  /* 签木优化：采用略带木质感的暖红调 */
-  background: #f19a9a;
-  border: 2rpx solid #8e1a1a;
-  border-radius: 4rpx 4rpx 0 0;
-  display: flex;
-  justify-content: center;
-  padding-top: 10rpx;
-  transform-origin: bottom center;
-  clip-path: polygon(0% 15%, 50% 0%, 100% 15%, 100% 100%, 0% 100%);
-}
-
-.a-stick text {
-  writing-mode: vertical-rl;
-  font-size: 20rpx;
-  color: #8e1a1a;
-  font-weight: bold;
-}
-
-.a-stick.s1 { transform: rotate(-25deg) translateX(-60rpx); background: #f2b1b1; }
-.a-stick.s2 { transform: rotate(-12deg) translateX(-30rpx); background: #f19a9a; }
-.a-stick.s3 { transform: rotate(0deg); background: #ec8b8b; z-index: 2; }
-.a-stick.s4 { transform: rotate(12deg) translateX(30rpx); background: #f19a9a; }
-.a-stick.s5 { transform: rotate(25deg) translateX(60rpx); background: #f2b1b1; }
-
-/* 掉落签条适配 */
+/* 掉落签条适配 - 赛博禅意风格 */
 .divine-stick {
   position: absolute;
   top: 0;
@@ -351,13 +251,13 @@
 
 .divine-stick.landing {
   opacity: 1;
-  transform: translateY(300rpx) rotate(0deg);
+  transform: translateY(450rpx) rotate(0deg);
 }
 
 @keyframes divine-drop {
   0% { transform: translateY(-200rpx) rotate(-15deg); opacity: 0; }
   30% { opacity: 1; }
-  100% { transform: translateY(300rpx) rotate(0deg); opacity: 1; }
+  100% { transform: translateY(450rpx) rotate(0deg); opacity: 1; }
 }
 
 .flat-stick {
@@ -385,7 +285,7 @@
   margin-top: 20rpx;
 }
 
-/* 动画风提示文字 */
+/* 动画风提示文字 - 赛博禅意风格 */
 .anime-hint {
   margin-top: 60rpx;
   display: flex;
@@ -412,6 +312,7 @@
   font-weight: bold;
 }
 
+/* 赛博禅意文字样式 */
 .hint-text-content {
   font-size: 34rpx;
   color: #fff;
@@ -419,6 +320,12 @@
   text-shadow: 0 0 15rpx rgba(255, 215, 0, 0.5);
 }
 
+.hint-text-content.cyber-zen-text {
+  font-family: serif;
+  letter-spacing: 4rpx;
+}
+
+/* 赛博禅意副提示文字 */
 .hint-sub-box {
   display: flex;
   align-items: center;
@@ -426,6 +333,13 @@
   gap: 12rpx;
   font-size: 26rpx;
   color: rgba(255, 255, 255, 0.4);
+}
+
+.hint-sub-box.cyber-sub-hint {
+  font-family: serif;
+  color: rgba(255, 255, 255, 0.6);
+  letter-spacing: 4rpx;
+  font-size: 24rpx;
 }
 
 .pulse-dot {

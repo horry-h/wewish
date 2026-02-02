@@ -44,7 +44,6 @@
 
     <view class="analysis-content {{analysisExpanded ? 'expanded' : ''}}">
       <view class="analysis-text">{{displayedAnalysis}}</view>
-      <view class="cursor {{isTyping ? 'blinking' : 'hidden'}}"></view>
     </view>
   </view>
 

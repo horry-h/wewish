@@ -129,7 +129,6 @@
 
         <view class="card-analysis-content {{analysisExpanded ? 'expanded' : ''}}">
           <view class="card-analysis-text">{{displayedAnalysis}}</view>
-          <view class="cursor {{isTyping ? 'blinking' : ''}}"></view>
         </view>
       </view>
 

@@ -109,6 +109,12 @@
 
         <!-- 纸签内容区 -->
         <view class="paper-content">
+          <!-- 分享模式顶部提示 -->
+          <view class="shared-hint" wx:if="{{isSharedView}}">
+            <view class="shared-icon">🎐</view>
+            <view class="shared-text">这是好友分享的签文</view>
+          </view>
+
           <!-- 垂直签文排版核心 -->
           <view class="verse-section">
             <view class="verse-flow">
@@ -138,11 +144,20 @@
 
           <!-- 底部操作 -->
           <view class="card-footer">
-            <view class="footer-primary-actions">
+            <!-- 分享模式：特殊引导按钮 -->
+            <view class="footer-primary-actions" wx:if="{{isSharedView}}">
+              <view class="footer-btn primary try-mine" bindtap="onTryMyFortune">
+                <text class="btn-icon">✨</text>
+                <text>抽我的签</text>
+              </view>
+              <view class="footer-btn secondary" bindtap="onCloseResult">返回首页</view>
+            </view>
+            <!-- 正常模式：保存和分享 -->
+            <view class="footer-primary-actions" wx:else>
               <view class="footer-btn primary" bindtap="onSaveFortune">保存灵签</view>
               <button class="footer-btn primary" open-type="share" style="margin: 0; line-height: inherit; font-weight: 500;">分享缘分</button>
             </view>
-            <view class="footer-btn close" bindtap="onCloseResult">收起签文</view>
+            <view class="footer-btn close" bindtap="onCloseResult" wx:if="{{!isSharedView}}">收起签文</view>
           </view>
         </view>
       </view>

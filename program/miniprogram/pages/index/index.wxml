@@ -109,8 +109,14 @@
       <view class="card-top-bar">
         <view class="card-back-btn" bindtap="onCloseResultCard">
           <text class="icon">←</text>
-          <text>返回</text>
+          <text>{{isSharedView ? '关闭' : '返回'}}</text>
         </view>
+      </view>
+
+      <!-- 分享模式提示 -->
+      <view class="shared-hint-card" wx:if="{{isSharedView}}">
+        <view class="shared-icon">🎁</view>
+        <view class="shared-text">好友分享了Ta的答案</view>
       </view>
 
       <!-- 装饰星星 -->
@@ -131,7 +137,7 @@
 
       <!-- 心中所念 -->
       <view class="card-thought-section" wx:if="{{userThought}}">
-        <view class="card-thought-label">心中所念</view>
+        <view class="card-thought-label">{{isSharedView ? 'Ta的心声' : '心中所念'}}</view>
         <view class="card-thought-content">{{userThought}}</view>
       </view>
 
@@ -149,12 +155,20 @@
       </view>
 
       <!-- 操作按钮组 -->
-      <view class="card-action-buttons">
+      <view class="card-action-buttons" wx:if="{{!isSharedView}}">
         <view class="card-action-btn card-btn-secondary" bindtap="onAskAgain">
           <text>再问一次</text>
         </view>
         <view class="card-action-btn card-btn-primary" bindtap="onGenerateCard">
           <text>生成卡片</text>
+        </view>
+      </view>
+
+      <!-- 分享模式：特殊引导按钮 -->
+      <view class="card-action-buttons" wx:if="{{isSharedView}}">
+        <view class="card-action-btn card-btn-primary try-my-answer" bindtap="onTryMyAnswer">
+          <text class="btn-icon">✨</text>
+          <text>抽我的答案</text>
         </view>
       </view>
 

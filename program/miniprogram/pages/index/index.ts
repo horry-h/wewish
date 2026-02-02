@@ -39,7 +39,9 @@ Page({
     currentBgLocalPath: '', // 当前背景图的本地缓存路径
     isRefreshingBg: false, // 是否正在刷新背景
     showQuestion: false, // 是否在海报上展示问题（默认不展示）
-    hasOpenedFortune: false // 是否已开启今日签文
+    hasOpenedFortune: false, // 是否已开启今日签文
+    isSharedView: false, // 是否为分享查看模式
+    sharedData: null as any // 分享的答案数据
   },
 
   // 定时器
@@ -49,14 +51,11 @@ Page({
   pressStartTime: 0,
   bgAudio: null as any,
   typewriterTimer: null as any,
-  // WebAudio 相关
-  audioContext: null as any, // WebAudio 上下文
-  audioBuffer: null as any, // 音频缓冲区
-  audioSource: null as any, // 音频源节点
+  audioContext: null as any, // InnerAudioContext 音频上下文
   isPlayingPageFlip: false, // 是否正在播放翻页音效
   isVibrating: false, // 震动状态标志
 
-  onLoad() {
+  onLoad(options: any) {
     // 获取状态栏高度
     const systemInfo = wx.getSystemInfoSync()
     this.setData({
@@ -66,161 +65,115 @@ Page({
       currentZenQuote: zenQuotes[0]
     })
 
-    // 初始化 WebAudio 翻页音效
+    console.log('📱 Index页面加载，options:', options)
+
+    // 检查是否从分享进入
+    if (options.shared === '1' && options.answer) {
+      console.log('🎁 检测到分享进入，准备展示分享内容')
+      this.handleSharedEntry(options)
+    } else {
+      console.log('📄 正常进入首页')
+    }
+
+    // 初始化翻页音效
     this.initPageFlipAudio()
   },
 
-  // 初始化翻页音效（使用 WebAudio API）
+  // 处理分享进入
+  handleSharedEntry(options: any) {
+    try {
+      console.log('🔍 开始解析分享数据...')
+      console.log('📥 原始 options:', JSON.stringify(options))
+      
+      const sharedData = {
+        category: options.category || 'general',
+        categoryName: decodeURIComponent(options.categoryName || '此时此刻'),
+        answer: decodeURIComponent(options.answer || ''),
+        analysis: options.analysis ? decodeURIComponent(options.analysis) : '', // AI解读可能为空
+        timestamp: decodeURIComponent(options.timestamp || ''),
+        question: options.question ? decodeURIComponent(options.question) : ''
+      }
+
+      console.log('📦 分享数据解析成功:', {
+        category: sharedData.category,
+        categoryName: sharedData.categoryName,
+        answer: sharedData.answer,
+        hasAnalysis: !!sharedData.analysis,
+        hasQuestion: !!sharedData.question
+      })
+
+      // 延迟一帧执行，确保页面已完全渲染
+      setTimeout(() => {
+        this.setData({
+          isSharedView: true,
+          sharedData: sharedData,
+          resultAnswer: sharedData.answer,
+          fullAnalysis: sharedData.analysis,
+          displayedAnalysis: sharedData.analysis,
+          resultTimestamp: sharedData.timestamp,
+          selectedCategory: sharedData.category,
+          userThought: sharedData.question,
+          showResultCard: false, // 不显示答案卡片
+          analysisExpanded: false
+        }, () => {
+          console.log('✅ 分享数据加载完成，准备生成海报...')
+          
+          // 自动生成并显示海报卡片
+          this.drawPoster(false, true).then(() => {
+            console.log('🎨 分享海报生成成功，已自动展示')
+          }).catch((error) => {
+            console.error('❌ 分享海报生成失败:', error)
+            // 如果海报生成失败，降级显示答案卡片
+            this.setData({
+              showResultCard: true
+            })
+          })
+        })
+      }, 100)
+
+    } catch (error) {
+      console.error('❌ 解析分享数据失败:', error)
+      wx.showToast({
+        title: '分享数据加载失败',
+        icon: 'none',
+        duration: 2000
+      })
+    }
+  },
+
+  // 初始化翻页音效（使用 InnerAudioContext）
   initPageFlipAudio() {
     try {
-      // 创建 WebAudio 上下文
-      this.audioContext = wx.createWebAudioContext()
+      // 使用 InnerAudioContext（微信小程序推荐方式）
+      const audio = wx.createInnerAudioContext()
+      audio.src = '/assets/audio/page-flip.wav'
+      audio.loop = true
+      audio.obeyMuteSwitch = false
       
-      // 使用文件系统管理器读取本地音频
-      const fs = wx.getFileSystemManager()
-      
-      // 读取本地音频文件（base64或arraybuffer）
-      fs.readFile({
-        filePath: `${wx.env.USER_DATA_PATH}/../assets/audio/page-flip.wav`,
-        success: (res: any) => {
-          console.log('音频文件读取成功')
-          this.decodeAudioData(res.data)
-        },
-        fail: () => {
-          // 降级：尝试使用相对路径
-          console.log('尝试使用项目路径读取')
-          this.loadAudioFromProject()
-        }
-      })
+      this.audioContext = audio
+      console.log('翻页音效初始化成功')
     } catch (error) {
-      console.error('WebAudio 初始化失败:', error)
-      console.log('将使用 InnerAudioContext 降级方案')
-      this.useFallbackAudio()
-    }
-  },
-
-  // 从项目路径加载音频
-  loadAudioFromProject() {
-    // 使用 wx.request 加载本地资源
-    // 注意：需要在小程序配置中将音频文件设置为不压缩
-    const audioPath = '/assets/audio/page-flip.wav'
-    
-    // 直接使用 FileSystemManager 的同步方法
-    try {
-      const fs = wx.getFileSystemManager()
-      const res = fs.readFileSync(audioPath)
-      this.decodeAudioData(res)
-    } catch (error) {
-      console.error('同步读取失败:', error)
-      this.useFallbackAudio()
-    }
-  },
-
-  // 解码音频数据
-  decodeAudioData(arrayBuffer: ArrayBuffer) {
-    if (!this.audioContext) return
-    
-    this.audioContext.decodeAudioData(
-      arrayBuffer,
-      (buffer: any) => {
-        this.audioBuffer = buffer
-        console.log('翻页音效加载成功，时长:', buffer.duration, '秒')
-      },
-      (err: any) => {
-        console.error('音频解码失败:', err)
-        this.useFallbackAudio()
-      }
-    )
-  },
-
-  // 降级方案：使用 InnerAudioContext
-  useFallbackAudio() {
-    console.log('使用 InnerAudioContext 降级方案')
-    const audio = wx.createInnerAudioContext()
-    audio.src = '/assets/audio/page-flip.wav'
-    audio.loop = true
-    audio.obeyMuteSwitch = false
-    
-    // 保存到特殊字段，表示使用降级方案
-    this.audioContext = {
-      fallback: true,
-      audio: audio
+      console.error('音频初始化失败:', error)
     }
   },
 
   // 播放翻页音效（循环播放）
   playPageFlipSound() {
-    if (!this.audioContext) {
-      console.warn('音频上下文未准备好')
+    if (!this.audioContext || this.isPlayingPageFlip) {
       return
-    }
-
-    // 检查是否使用降级方案
-    if (this.audioContext.fallback) {
-      if (this.audioContext.audio && !this.isPlayingPageFlip) {
-        this.audioContext.audio.play()
-        this.isPlayingPageFlip = true
-      }
-      return
-    }
-
-    // 使用 WebAudio 方案
-    if (!this.audioBuffer) {
-      console.warn('音频缓冲区未准备好')
-      return
-    }
-
-    if (this.isPlayingPageFlip) {
-      return // 已在播放中
     }
 
     this.isPlayingPageFlip = true
-    this.createAndPlaySource()
-  },
-
-  // 创建并播放音频源
-  createAndPlaySource() {
-    if (!this.audioContext || !this.audioBuffer || this.audioContext.fallback) return
-
-    // 创建音频源节点
-    const source = this.audioContext.createBufferSource()
-    source.buffer = this.audioBuffer
-    
-    // 连接到目标（扬声器）
-    source.connect(this.audioContext.destination)
-    
-    // 监听播放结束，实现循环
-    source.onended = () => {
-      if (this.isPlayingPageFlip) {
-        // 继续播放下一次
-        this.createAndPlaySource()
-      }
-    }
-    
-    // 保存引用
-    this.audioSource = source
-    
-    // 开始播放
-    source.start()
+    this.audioContext.play()
   },
 
   // 停止翻页音效
   stopPageFlipSound() {
     this.isPlayingPageFlip = false
-
-    // 检查是否使用降级方案
-    if (this.audioContext && this.audioContext.fallback) {
-      if (this.audioContext.audio) {
-        this.audioContext.audio.stop()
-      }
-      return
-    }
     
-    // WebAudio 方案
-    if (this.audioSource) {
+    if (this.audioContext) {
       try {
-        this.audioSource.stop()
-        this.audioSource = null
+        this.audioContext.stop()
       } catch (error) {
         console.error('停止音频失败:', error)
       }
@@ -483,11 +436,37 @@ Page({
       analysisExpanded: false,
       displayedAnalysis: '',
       fullAnalysis: '',
-      isTyping: false
+      isTyping: false,
+      isSharedView: false,
+      sharedData: null
     })
     if (this.typewriterTimer) {
       clearInterval(this.typewriterTimer)
     }
+  },
+
+  // 分享模式：抽我的答案
+  onTryMyAnswer() {
+    wx.vibrateShort({ type: 'medium' })
+    
+    // 关闭分享的答案卡片
+    this.setData({
+      showResultCard: false,
+      isSharedView: false,
+      sharedData: null,
+      resultAnswer: '',
+      fullAnalysis: '',
+      displayedAnalysis: '',
+      selectedCategory: '',
+      userThought: '',
+      isBreathing: true
+    })
+    
+    wx.showToast({
+      title: '开始抽取您的答案',
+      icon: 'none',
+      duration: 2000
+    })
   },
 
   // 切换AI解读展开/收起
@@ -924,7 +903,7 @@ ${enhancement}
             const questionLines = this.wrapText(ctx, questionText, 650)
             
             // 完整显示所有问题内容
-            questionLines.forEach((line, index) => {
+            questionLines.forEach((line: string, index: number) => {
               ctx.fillText(line, 375, currentY + index * 40)
             })
             
@@ -989,7 +968,7 @@ ${enhancement}
           const displayLines = Math.min(analysisLines.length, maxAnalysisLines)
           
           // 绘制AI解读
-          analysisLines.slice(0, displayLines).forEach((line, index) => {
+          analysisLines.slice(0, displayLines).forEach((line: string, index: number) => {
             ctx.fillText(line, 375, currentY + index * analysisLineHeight)
           })
           
@@ -1270,8 +1249,14 @@ ${enhancement}
     this.setData({
       isBreathing: true
     })
+    
     // 检查今日是否已开启签文
     this.checkFortuneStatus()
+    
+    // 如果是分享模式，保持结果卡片显示
+    if (this.data.isSharedView && this.data.showResultCard) {
+      console.log('🔄 onShow: 保持分享模式的结果卡片显示')
+    }
   },
 
   // 检查今日签文状态
@@ -1292,9 +1277,52 @@ ${enhancement}
 
   // 分享给好友
   onShareAppMessage() {
-    // 不自动关闭弹窗,让用户可以继续操作
+    console.log('🔗 触发分享，当前状态:', {
+      showResultCard: this.data.showResultCard,
+      hasAnswer: !!this.data.resultAnswer,
+      hasAnalysis: !!this.data.fullAnalysis,
+      isSharedView: this.data.isSharedView
+    })
+
+    // 场景1：有答案（无论是否有AI解读）
+    if (this.data.resultAnswer) {
+      const category = this.data.categories.find(cat => cat.key === this.data.selectedCategory) || this.data.categories[7]
+      
+      const params = [
+        'shared=1',
+        `category=${this.data.selectedCategory}`,
+        `categoryName=${encodeURIComponent(category.name)}`,
+        `answer=${encodeURIComponent(this.data.resultAnswer)}`,
+        `timestamp=${encodeURIComponent(this.data.resultTimestamp)}`
+      ]
+      
+      // 如果有AI解读，也携带（可能还在生成中，所以是可选的）
+      if (this.data.fullAnalysis) {
+        params.push(`analysis=${encodeURIComponent(this.data.fullAnalysis)}`)
+        console.log('✅ 分享完整答案（含AI解读）')
+      } else {
+        console.log('✅ 分享答案（AI解读生成中或未生成）')
+      }
+      
+      // 如果有用户问题，也携带
+      if (this.data.userThought) {
+        params.push(`question=${encodeURIComponent(this.data.userThought)}`)
+      }
+      
+      const sharePath = `/pages/index/index?${params.join('&')}`
+      console.log('📤 分享路径:', sharePath.substring(0, 100) + '...')
+      
+      return {
+        title: `我在「${category.name}」中抽到了答案：「${this.data.resultAnswer}」`,
+        path: sharePath,
+        imageUrl: this.data.posterImagePath || ''
+      }
+    }
+    
+    // 场景2：没有答案，默认分享（邀请体验）
+    console.log('⚠️ 当前无答案卡片，使用邀请分享')
     return {
-      title: `我抽到了答案：「${this.data.resultAnswer}」，你也来听听书灵的解读`,
+      title: '当下有解 - 书灵为你指引方向',
       path: '/pages/index/index',
       imageUrl: this.data.posterImagePath || ''
     }
@@ -1302,8 +1330,31 @@ ${enhancement}
 
   // 分享到朋友圈
   onShareTimeline() {
+    if (this.data.resultAnswer && this.data.fullAnalysis) {
+      const category = this.data.categories.find(cat => cat.key === this.data.selectedCategory) || this.data.categories[7]
+      
+      const params = [
+        'shared=1',
+        `category=${this.data.selectedCategory}`,
+        `categoryName=${encodeURIComponent(category.name)}`,
+        `answer=${encodeURIComponent(this.data.resultAnswer)}`,
+        `analysis=${encodeURIComponent(this.data.fullAnalysis)}`,
+        `timestamp=${encodeURIComponent(this.data.resultTimestamp)}`
+      ]
+      
+      if (this.data.userThought) {
+        params.push(`question=${encodeURIComponent(this.data.userThought)}`)
+      }
+      
+      return {
+        title: `书灵说：「${this.data.resultAnswer}」`,
+        query: params.join('&'),
+        imageUrl: this.data.posterImagePath || ''
+      }
+    }
+    
     return {
-      title: `书灵说：「${this.data.resultAnswer}」`,
+      title: '当下有解 - 书灵为你指引方向',
       query: '',
       imageUrl: this.data.posterImagePath || ''
     }
@@ -1315,10 +1366,10 @@ ${enhancement}
     if (this.typewriterTimer) {
       clearInterval(this.typewriterTimer)
     }
-    // 销毁 WebAudio 上下文
+    // 销毁音频上下文
     if (this.audioContext) {
       try {
-        this.audioContext.close()
+        this.audioContext.destroy()
         this.audioContext = null
       } catch (error) {
         console.error('关闭音频上下文失败:', error)

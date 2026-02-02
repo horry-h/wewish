@@ -614,11 +614,14 @@
   flex-direction: column;
   align-items: center;
   flex: 1;
-  overflow: hidden; /* 内容区弹性展示 */
+  overflow-y: auto; /* 允许垂直滚动 */
+  overflow-x: hidden;
   position: relative;
   opacity: 0;
   /* 启用硬件加速 */
   will-change: opacity;
+  /* 滚动优化 */
+  -webkit-overflow-scrolling: touch;
 }
 
 .show .paper-content {
@@ -628,6 +631,43 @@
 @keyframes content-fadein {
   from { opacity: 0; }
   to { opacity: 1; }
+}
+
+/* 分享模式顶部提示 */
+.shared-hint {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12rpx;
+  padding: 16rpx 24rpx;
+  margin-bottom: 20rpx;
+  background: linear-gradient(135deg, rgba(212, 165, 116, 0.08) 0%, rgba(248, 181, 0, 0.05) 100%);
+  border: 1rpx solid rgba(212, 175, 55, 0.2);
+  border-radius: 40rpx;
+  animation: hint-glow 3s ease-in-out infinite;
+}
+
+@keyframes hint-glow {
+  0%, 100% { box-shadow: 0 0 0 rgba(212, 175, 55, 0); }
+  50% { box-shadow: 0 0 20rpx rgba(212, 175, 55, 0.15); }
+}
+
+.shared-icon {
+  font-size: 28rpx;
+  animation: icon-sway 2s ease-in-out infinite;
+}
+
+@keyframes icon-sway {
+  0%, 100% { transform: rotate(-5deg); }
+  50% { transform: rotate(5deg); }
+}
+
+.shared-text {
+  font-size: 22rpx;
+  color: #8B7355;
+  letter-spacing: 1rpx;
+  font-weight: 500;
 }
 
 /* 垂直签文排版核心 (Zen Typography) */
@@ -770,6 +810,51 @@
   box-shadow: 0 8rpx 20rpx rgba(212, 165, 116, 0.2);
   border: none;
   padding: 0;
+}
+
+.footer-btn.primary.try-mine {
+  flex: 1.5; /* 让"抽我的签"按钮更宽 */
+  background: linear-gradient(135deg, #f8b500 0%, #fceabb 100%);
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8rpx;
+  position: relative;
+  overflow: hidden;
+}
+
+.footer-btn.primary.try-mine::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+  animation: btn-shine 3s infinite;
+}
+
+@keyframes btn-shine {
+  0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+  100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
+}
+
+.footer-btn.secondary {
+  flex: 1;
+  background: transparent;
+  color: #999999;
+  border: 1rpx solid rgba(0, 0, 0, 0.1);
+}
+
+.btn-icon {
+  font-size: 28rpx;
+  animation: icon-pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes icon-pulse {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.2); opacity: 0.8; }
 }
 
 .footer-btn.close {

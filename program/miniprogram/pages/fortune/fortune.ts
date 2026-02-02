@@ -26,7 +26,11 @@ Page({
     isDataReady: false, // AI数据是否已就绪
     hasClosedResult: false, // 标记用户是否主动关闭过签文
     backgroundImage: '', // Bing随机背景图
+    backgroundImageUrl: '', // Bing背景图的原始URL（用于分享传递）
+    shareImagePath: '', // 专门用于分享的海报图
     showDebug: false, // 显示调试信息
+    isSharedView: false, // 是否为分享进入的预览模式
+    sharedFortuneData: null as FortuneData | null, // 分享者的签文数据
   },
 
   // 定时器
@@ -47,7 +51,7 @@ Page({
   interactionCheckInterval: 100, // 交互状态检测间隔
   interactionCheckTimer: null as any,
 
-  onLoad() {
+  onLoad(options: any) {
     // 获取状态栏高度
     const systemInfo = wx.getSystemInfoSync()
     this.setData({
@@ -55,8 +59,14 @@ Page({
       todayDate: this.formatDate(new Date())
     })
 
-    // 检查今日是否已抽签
-    this.checkTodayFortune()
+    // 检查是否从分享进入
+    if (options.shared === '1' && options.level) {
+      // 分享模式：展示分享者的签文
+      this.handleSharedEntry(options)
+    } else {
+      // 正常模式：检查今日是否已抽签
+      this.checkTodayFortune()
+    }
 
     // 初始化摇签音效
     this.initShakeAudio()
@@ -68,7 +78,86 @@ Page({
     this.startInteractionCheck()
     
     // 【关键】预加载AI内容（用户无感知）
-    this.preloadFortuneData()
+    if (!options.shared) {
+      this.preloadFortuneData()
+    }
+  },
+
+  // 处理分享进入
+  handleSharedEntry(options: any) {
+    try {
+      // 解析分享者的签文数据
+      const sharedFortune: FortuneData = {
+        level: options.level || 'good',
+        levelText: decodeURIComponent(options.levelText || '吉'),
+        verse: decodeURIComponent(options.verse || ''),
+        suitable: decodeURIComponent(options.suitable || ''),
+        unsuitable: decodeURIComponent(options.unsuitable || ''),
+        message: decodeURIComponent(options.message || '')
+      }
+
+      const { verseLines, verseLine1, verseLine2 } = this.processVerseForDisplay(sharedFortune.verse)
+
+      this.setData({
+        isSharedView: true,
+        sharedFortuneData: sharedFortune,
+        verseLines: verseLines,
+        verseLine1: verseLine1,
+        verseLine2: verseLine2,
+        hintText: '好友分享了Ta的签文，点击查看',
+        showResult: false,
+        hasClosedResult: true
+      })
+
+      // 如果有背景图URL，加载背景图
+      if (options.bgImage) {
+        const bgImageUrl = decodeURIComponent(options.bgImage)
+        wx.getImageInfo({
+          src: bgImageUrl,
+          success: (res) => {
+            this.setData({ 
+              backgroundImage: res.path,
+              backgroundImageUrl: bgImageUrl
+            })
+            console.log('✅ 已加载分享的背景图')
+          },
+          fail: (err) => {
+            console.warn('加载分享背景图失败，使用默认图:', err)
+            this.preloadBackgroundImage()
+          }
+        })
+      } else {
+        // 没有背景图URL，预加载新的
+        this.preloadBackgroundImage()
+      }
+
+      // 延迟自动展示分享的签文
+      setTimeout(() => {
+        this.showSharedFortune()
+      }, 800)
+      
+      console.log('📬 分享进入模式，展示好友签文')
+    } catch (error) {
+      console.error('解析分享数据失败:', error)
+      // 降级处理：按正常模式加载
+      this.checkTodayFortune()
+    }
+  },
+
+  // 展示分享的签文
+  showSharedFortune() {
+    if (!this.data.sharedFortuneData) return
+    
+    this.setData({
+      fortuneData: this.data.sharedFortuneData,
+      showResult: true,
+      displayedMessage: this.data.sharedFortuneData.message
+    })
+    
+    // 延迟生成分享海报
+    setTimeout(() => {
+      this.generateShareImage()
+    }, 1000)
   },
 
   // 格式化日期
@@ -127,7 +216,10 @@ Page({
         
         // 预加载背景图（如果已有则复用）
         if (savedFortuneData.backgroundImage) {
-          this.setData({ backgroundImage: savedFortuneData.backgroundImage })
+          this.setData({ 
+            backgroundImage: savedFortuneData.backgroundImage,
+            backgroundImageUrl: savedFortuneData.backgroundImageUrl || ''
+          })
         } else {
           this.preloadBackgroundImage()
         }
@@ -154,7 +246,8 @@ Page({
         date: todayKey, // 日期标识 YYYY-MM-DD
         timestamp: Date.now(), // 时间戳
         fortune: fortuneData, // 签文数据
-        backgroundImage: this.data.backgroundImage // 保存背景图路径
+        backgroundImage: this.data.backgroundImage, // 保存背景图路径
+        backgroundImageUrl: this.data.backgroundImageUrl // 保存背景图URL
       }
       wx.setStorageSync('fortune_data', saveData)
       console.log('💾 今日签文已保存:', {
@@ -403,7 +496,14 @@ Page({
     wx.getImageInfo({
       src: imageUrl,
       success: (res) => {
-        this.setData({ backgroundImage: res.path })
+        this.setData({ 
+          backgroundImage: res.path,
+          backgroundImageUrl: imageUrl
+        })
+        console.log('✅ 背景图加载成功')
+      },
+      fail: (err) => {
+        console.warn('背景图加载失败:', err)
       }
     })
   },
@@ -565,11 +665,25 @@ Page({
 
     wx.vibrateShort({ type: 'heavy' })
     this.saveTodayFortune(this.data.fortuneData)
+    
+    // 延迟生成分享海报（给签文显示动画留时间）
+    setTimeout(() => {
+      this.generateShareImage()
+    }, 1000)
   },
 
   // 关闭结果
   onCloseResult() {
     wx.vibrateShort({ type: 'light' })
+    
+    // 如果是分享模式，返回首页
+    if (this.data.isSharedView) {
+      wx.redirectTo({
+        url: '/pages/index/index'
+      })
+      return
+    }
+    
     const todayKey = this.getTodayDateKey()
     const savedFortuneData = wx.getStorageSync('fortune_data')
     if (savedFortuneData && savedFortuneData.date === todayKey) {
@@ -593,6 +707,34 @@ Page({
     })
   },
 
+  // 分享模式：抽我的签
+  onTryMyFortune() {
+    wx.vibrateShort({ type: 'medium' })
+    
+    // 关闭分享的签文
+    this.setData({
+      showResult: false,
+      isSharedView: false,
+      sharedFortuneData: null,
+      fortuneData: null,
+      verseLines: [],
+      hintText: '心诚则灵，感受当下',
+      hasClosedResult: false
+    })
+    
+    // 检查今日是否已抽签
+    this.checkTodayFortune()
+    
+    // 预加载AI内容
+    this.preloadFortuneData()
+    
+    wx.showToast({
+      title: '开始抽取您的签文',
+      icon: 'none',
+      duration: 2000
+    })
+  },
+
   // 阻止冒泡
   onPreventDefault() {},
 
@@ -608,6 +750,109 @@ Page({
       wx.showToast({ title: '生成失败', icon: 'none' })
     })
   },
+
+  // 生成专门用于分享的海报图
+  generateShareImage() {
+    if (!this.data.fortuneData) return
+    
+    const query = wx.createSelectorQuery()
+    query.select('#fortuneCanvas')
+      .fields({ node: true, size: true })
+      .exec(async (res) => {
+        if (!res || !res[0] || !res[0].node) return
+        
+        try {
+          const canvas = res[0].node
+          const ctx = canvas.getContext('2d')
+          const dpr = wx.getSystemInfoSync().pixelRatio
+          const canvasWidth = 375
+          const canvasHeight = 500 // 缩小高度，专注于签文展示
+          canvas.width = canvasWidth * dpr
+          canvas.height = canvasHeight * dpr
+          ctx.scale(dpr, dpr)
+          
+          const fortuneData = this.data.fortuneData!
+          
+          // 1. 背景 - 浅色背景
+          ctx.fillStyle = '#F8F5F0'
+          ctx.fillRect(0, 0, canvasWidth, canvasHeight)
+          
+          // 2. 顶部背景图（较小尺寸）
+          const headerHeight = 180
+          if (this.data.backgroundImage) {
+            const bgImage = canvas.createImage()
+            bgImage.src = this.data.backgroundImage
+            await new Promise<void>((r) => {
+              bgImage.onload = () => {
+                ctx.save()
+                ctx.beginPath()
+                ctx.rect(0, 0, canvasWidth, headerHeight)
+                ctx.clip()
+                const ratio = canvasWidth / bgImage.width
+                const imgHeight = bgImage.height * ratio
+                const offsetY = -(imgHeight - headerHeight) / 2
+                ctx.drawImage(bgImage, 0, offsetY, canvasWidth, imgHeight)
+                ctx.restore()
+                r()
+              }
+              bgImage.onerror = r
+            })
+          }
+          
+          // 3. 印章（右上角）
+          const stampColor = fortuneData.level === 'great' ? '#D4AF37' : '#8B2222'
+          ctx.save()
+          ctx.translate(canvasWidth - 50, headerHeight - 30)
+          ctx.rotate(15 * Math.PI / 180)
+          ctx.strokeStyle = stampColor
+          ctx.lineWidth = 2
+          this.roundRect(ctx, -18, -22, 36, 44, 2)
+          ctx.stroke()
+          ctx.font = 'bold 16px STKaiti, serif'
+          ctx.fillStyle = stampColor
+          ctx.textAlign = 'center'
+          ctx.textBaseline = 'middle'
+          ctx.fillText(fortuneData.levelText, 0, 0)
+          ctx.restore()
+          
+          // 4. 签文（垂直居中）
+          const verseLines = this.data.verseLines
+          ctx.font = '500 20px STKaiti, serif'
+          ctx.fillStyle = '#2C2C2C'
+          ctx.textAlign = 'center'
+          const startX = canvasWidth / 2 + (verseLines.length - 1) * 25
+          verseLines.forEach((line: string, i: number) => {
+            const x = startX - i * 50
+            line.split('').forEach((char: string, j: number) => {
+              ctx.fillText(char, x, headerHeight + 60 + j * 28)
+            })
+          })
+          
+          // 5. 底部标识
+          ctx.font = '12px PingFang SC'
+          ctx.fillStyle = '#999999'
+          ctx.textAlign = 'center'
+          ctx.fillText('—— 来自《当下有解》每日一签 ——', canvasWidth / 2, canvasHeight - 30)
+          
+          // 保存为分享图
+          setTimeout(() => {
+            wx.canvasToTempFilePath({
+              canvas,
+              success: (res) => {
+                this.setData({ shareImagePath: res.tempFilePath })
+                console.log('✅ 分享海报生成成功')
+              },
+              fail: (err) => {
+                console.error('生成分享海报失败:', err)
+              }
+            })
+          }, 300)
+        } catch (e) {
+          console.error('绘制分享海报失败:', e)
+        }
+      })
+  },
+
 
   // 绘制海报
   drawFortuneImage(): Promise<void> {
@@ -803,13 +1048,54 @@ Page({
 
   onShareAppMessage() {
     const fortuneData = this.data.fortuneData
+    if (fortuneData) {
+      // 如果还没生成分享海报，先生成
+      if (!this.data.shareImagePath) {
+        this.generateShareImage()
+      }
+      
+      // 构建分享路径，携带签文数据和背景图URL
+      const params = [
+        'shared=1',
+        `level=${fortuneData.level}`,
+        `levelText=${encodeURIComponent(fortuneData.levelText)}`,
+        `verse=${encodeURIComponent(fortuneData.verse)}`,
+        `suitable=${encodeURIComponent(fortuneData.suitable)}`,
+        `unsuitable=${encodeURIComponent(fortuneData.unsuitable)}`,
+        `message=${encodeURIComponent(fortuneData.message)}`
+      ]
+      
+      // 携带背景图URL
+      if (this.data.backgroundImageUrl) {
+        params.push(`bgImage=${encodeURIComponent(this.data.backgroundImageUrl)}`)
+      }
+      
+      return {
+        title: `我抽到了「${fortuneData.levelText}」签，一起来看看书灵的解读吧`,
+        path: `/pages/fortune/fortune?${params.join('&')}`,
+        imageUrl: this.data.shareImagePath || this.data.backgroundImage || ''
+      }
+    }
+    
     return {
-      title: fortuneData ? `今日缘分：我抽到了「${fortuneData.levelText}」签` : '今日一签 - 当下有解',
+      title: '今日一签 - 当下有解，书灵为你指引方向',
       path: '/pages/fortune/fortune'
     }
   },
 
-  onBack() { wx.navigateBack() },
+  // 返回处理：如果是分享进入（页面栈只有1页），则跳转首页
+  onBack() {
+    const pages = getCurrentPages()
+    if (pages.length === 1) {
+      // 分享进入，跳转到首页
+      wx.redirectTo({
+        url: '/pages/index/index'
+      })
+    } else {
+      // 正常返回
+      wx.navigateBack()
+    }
+  },
 
   onLongPressTitle() {
     wx.showModal({

@@ -987,9 +987,36 @@ Page({
               ctx.fillText(line, canvasWidth / 2, messageY + 18 + i * 18)
             })
 
-            // 7. 底部标识
+            // 7. 小程序码（真实二维码）
+            const qrcodeImage = canvas.createImage()
+            qrcodeImage.src = '/assets/img/qrcode.png'
+            await new Promise<void>((resolveQR) => {
+              qrcodeImage.onload = () => {
+                // 绘制二维码图片，放在左下角，尺寸 50x50
+                const qrSize = 50
+                const qrX = 30
+                const qrY = canvasHeight - 80
+                ctx.drawImage(qrcodeImage, qrX, qrY, qrSize, qrSize)
+                
+                // 绘制"扫码体验"文字
+                ctx.font = '10px PingFang SC'
+                ctx.fillStyle = '#999999'
+                ctx.textAlign = 'left'
+                ctx.fillText('扫码体验', qrX + qrSize + 8, qrY + 25)
+                
+                resolveQR()
+              }
+              qrcodeImage.onerror = () => {
+                // 图片加载失败时跳过
+                console.error('二维码加载失败')
+                resolveQR()
+              }
+            })
+
+            // 8. 底部标识
             ctx.font = '11px PingFang SC'
             ctx.fillStyle = '#CCCCCC'
+            ctx.textAlign = 'center'
             ctx.fillText('—— 来自《当下有解》极简纸签 ——', canvasWidth / 2, canvasHeight - 40)
 
             setTimeout(() => {

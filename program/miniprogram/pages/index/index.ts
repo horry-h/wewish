@@ -783,7 +783,7 @@ ${enhancement}
   },
 
   // 绘制海报
-  async drawPoster(forceRefreshBg: boolean = false, useRandomBg: boolean = false): Promise<void> {
+  async drawPoster(forceRefreshBg: boolean = false, useRandomBg: boolean = false, includeQRCode: boolean = false): Promise<void> {
     wx.showLoading({
       title: '书灵正在绘图...',
       mask: true
@@ -1013,16 +1013,30 @@ ${enhancement}
           ctx.fillStyle = 'rgba(255, 255, 255, 0.45)'
           ctx.fillText('—— 来自《当下有解》书灵', 375, bottomBaseY + 55)
 
-          // 13. 小程序码占位符（圆形 + 提示）
-          ctx.fillStyle = 'rgba(255, 255, 255, 0.12)'
-          ctx.beginPath()
-          ctx.arc(120, bottomBaseY + 95, 38, 0, 2 * Math.PI)
-          ctx.fill()
-
-          ctx.font = '16px sans-serif'
-          ctx.fillStyle = 'rgba(255, 255, 255, 0.5)'
-          ctx.textAlign = 'left'
-          ctx.fillText('扫码体验', 175, bottomBaseY + 105)
+          // 13. 小程序码（真实二维码）- 仅在需要时绘制
+          if (includeQRCode) {
+            const qrcodeImage = canvas.createImage()
+            qrcodeImage.src = '/assets/img/qrcode.png'
+            await new Promise<void>((resolveQR) => {
+              qrcodeImage.onload = () => {
+                // 绘制二维码图片，尺寸为 76x76 (半径38的圆形区域)
+                ctx.drawImage(qrcodeImage, 120 - 38, bottomBaseY + 95 - 38, 76, 76)
+                
+                // // 绘制"扫码体验"文字
+                // ctx.font = '16px sans-serif'
+                // ctx.fillStyle = 'rgba(255, 255, 255, 0.5)'
+                // ctx.textAlign = 'left'
+                // ctx.fillText('扫码体验', 175, bottomBaseY + 105)
+                
+                resolveQR()
+              }
+              qrcodeImage.onerror = () => {
+                // 图片加载失败时跳过
+                console.error('二维码加载失败')
+                resolveQR()
+              }
+            })
+          }
 
           // 13. 导出图片
           setTimeout(() => {
@@ -1228,37 +1242,63 @@ ${enhancement}
         return
       }
 
-      // 保存图片
-      wx.saveImageToPhotosAlbum({
-        filePath: this.data.posterImagePath,
-        success: () => {
-          wx.showToast({
-            title: '已保存到相册',
-            icon: 'success'
-          })
-          // 不自动关闭弹窗,让用户可以继续操作(如换背景、分享等)
-        },
-        fail: (err) => {
-          if (err.errMsg.includes('auth deny')) {
-            // 用户拒绝授权
-            wx.showModal({
-              title: '需要相册权限',
-              content: '请允许访问您的相册，以便保存图片',
-              confirmText: '去设置',
-              success: (res) => {
-                if (res.confirm) {
-                  wx.openSetting()
-                }
-              }
-            })
-          } else {
+      // 重新生成带二维码的图片用于保存
+      wx.showLoading({ title: '正在保存...', mask: true })
+      
+      try {
+        // 生成带二维码的图片
+        await this.drawPoster(false, false, true) // includeQRCode=true
+        
+        // 保存带二维码的图片
+        wx.saveImageToPhotosAlbum({
+          filePath: this.data.posterImagePath,
+          success: () => {
+            wx.hideLoading()
             wx.showToast({
-              title: '保存失败',
-              icon: 'none'
+              title: '已保存到相册',
+              icon: 'success'
             })
+            
+            // 保存完成后，重新生成不带二维码的预览图
+            setTimeout(() => {
+              this.drawPoster(false, false, false) // includeQRCode=false，恢复预览状态
+            }, 100)
+          },
+          fail: (err) => {
+            wx.hideLoading()
+            if (err.errMsg.includes('auth deny')) {
+              // 用户拒绝授权
+              wx.showModal({
+                title: '需要相册权限',
+                content: '请允许访问您的相册，以便保存图片',
+                confirmText: '去设置',
+                success: (res) => {
+                  if (res.confirm) {
+                    wx.openSetting()
+                  }
+                }
+              })
+            } else {
+              wx.showToast({
+                title: '保存失败',
+                icon: 'none'
+              })
+            }
+            
+            // 保存失败也要恢复预览图
+            setTimeout(() => {
+              this.drawPoster(false, false, false)
+            }, 100)
           }
-        }
-      })
+        })
+      } catch (error) {
+        wx.hideLoading()
+        console.error('生成带二维码图片失败:', error)
+        wx.showToast({
+          title: '生成失败',
+          icon: 'none'
+        })
+      }
     } catch (error) {
       console.error('保存图片失败:', error)
       wx.showToast({
